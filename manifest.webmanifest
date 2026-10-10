@@ -1,0 +1,17 @@
+{
+  "name": "PSG Live",
+  "short_name": "PSG Live",
+  "description": "Toute l'actualité du PSG : matchs, compo, mercato, score en direct et notifications.",
+  "lang": "fr",
+  "id": "./",
+  "start_url": "./?source=app",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#0a3a7a",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -6,6 +6,12 @@
 <meta name="description" content="Toute l'actualité du PSG : prochain match, compo, infirmerie, résultats, mercato et classement, mis à jour automatiquement.">
 <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PSG Live">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230a3a7a'/%3E%3Crect x='13' width='6' height='32' fill='%23d6262b'/%3E%3Crect x='11' width='2' height='32' fill='%23fff'/%3E%3Crect x='19' width='2' height='32' fill='%23fff'/%3E%3C/svg%3E">
 <title>PSG Live</title>
 <style>
@@ -166,6 +172,40 @@ a.card:hover{text-decoration:none;transform:translateY(-2px)}
 .c-club,.c-europe{color:var(--fg-2);background:var(--line)}
 .empty{color:var(--fg-2);font-size:14px;padding:24px 0;text-align:center}
 .skeleton{height:14px;border-radius:7px;background:var(--surface-2);margin:10px 0}
+
+/* Notifications */
+.iconbtn{all:unset;cursor:pointer;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--fg);background:var(--surface-2);flex:none;position:relative}
+.iconbtn:hover{background:color-mix(in srgb,var(--fg) 12%,var(--surface-2))}
+.iconbtn svg{width:18px;height:18px}
+.iconbtn.on::after{content:"";position:absolute;top:6px;right:7px;width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 0 2px var(--surface-2)}
+dialog.sheet{border:0;padding:0;border-radius:20px;background:var(--surface);color:var(--fg);width:min(440px,calc(100vw - 32px));max-height:calc(100dvh - 48px);box-shadow:0 24px 64px rgba(0,0,0,.35)}
+dialog.sheet::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.sheet-in{padding:22px;display:flex;flex-direction:column;gap:16px}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.sheet-head h2{font-size:20px}
+.sheet p.lead{margin:0;color:var(--fg-2);font-size:14px}
+.group{background:var(--surface-2);border-radius:14px;display:flex;flex-direction:column}
+.opt{display:flex;align-items:center;gap:12px;padding:12px 14px;border-top:1px solid var(--line);cursor:pointer}
+.opt:first-child{border-top:0}
+.opt .grow{flex:1;min-width:0}
+.opt b{display:block;font-weight:500;font-size:15px}
+.opt small{color:var(--fg-2);font-size:12.5px}
+.switch{appearance:none;-webkit-appearance:none;width:44px;height:26px;border-radius:13px;background:var(--fg-3);position:relative;cursor:pointer;flex:none;transition:background .2s;margin:0}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+.switch:checked{background:var(--win)}
+.switch:checked::after{transform:translateX(18px)}
+.switch:disabled{opacity:.5;cursor:default}
+.btn{all:unset;cursor:pointer;text-align:center;padding:12px 16px;border-radius:12px;font-weight:600;font-size:15px}
+.btn.primary{background:var(--accent);color:#fff}
+.btn.secondary{background:var(--surface-2);color:var(--accent)}
+.btn.danger{background:var(--surface-2);color:var(--loss)}
+.btn[disabled]{opacity:.5;cursor:default}
+.btns{display:flex;flex-direction:column;gap:8px}
+.note{font-size:13px;color:var(--fg-2);background:var(--surface-2);border-radius:12px;padding:12px 14px}
+.note b{color:var(--fg)}
+.msg{font-size:13px;min-height:1em;color:var(--fg-2)}
+.msg.err{color:var(--loss)}
+.msg.ok{color:var(--win)}
 footer{max-width:1080px;margin:0 auto;padding:0 16px 40px;color:var(--fg-3);font-size:12px}
 
 [data-sec]{scroll-margin-top:72px}
@@ -189,8 +229,29 @@ body.filter-on [data-sec]:not(.show){display:none}
       <button type="button" data-f="table" aria-pressed="false">Classement</button>
     </nav>
     <div class="sync" id="sync"><span class="dot pulse"></span><span id="syncTxt">Connexion…</span></div>
+    <button type="button" class="iconbtn" id="bell" hidden aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button>
   </div>
 </header>
+
+<dialog class="sheet" id="notifSheet" aria-labelledby="notifTitle">
+  <form method="dialog" class="sheet-in" id="notifForm">
+    <div class="sheet-head"><h2 id="notifTitle">Notifications</h2><button class="iconbtn" value="close" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <p class="lead">Recevez les temps forts du PSG sur cet appareil, même quand le site est fermé.</p>
+    <div class="note" id="iosNote" hidden>Sur iPhone, ajoutez d'abord PSG Live à l'écran d'accueil : touchez <b>Partager</b> puis <b>Sur l'écran d'accueil</b>, ouvrez l'appli depuis son icône, et revenez ici.</div>
+    <div class="group" id="prefGroup">
+      <label class="opt" for="p-goals"><span class="grow"><b>Buts</b><small>Chaque but, pour ou contre le PSG, avec le buteur</small></span><input type="checkbox" class="switch" id="p-goals" data-pref="goals" checked></label>
+      <label class="opt" for="p-match"><span class="grow"><b>Temps forts du match</b><small>Coup d'envoi, mi-temps et score final</small></span><input type="checkbox" class="switch" id="p-match" data-pref="match" checked></label>
+      <label class="opt" for="p-lineup"><span class="grow"><b>Compo officielle</b><small>Environ une heure avant le coup d'envoi</small></span><input type="checkbox" class="switch" id="p-lineup" data-pref="lineup" checked></label>
+      <label class="opt" for="p-news"><span class="grow"><b>Actu et mercato</b><small>Les nouvelles infos importantes du fil d'actu</small></span><input type="checkbox" class="switch" id="p-news" data-pref="news"></label>
+    </div>
+    <div class="btns">
+      <button type="button" class="btn primary" id="notifToggle">Activer les notifications</button>
+      <button type="button" class="btn secondary" id="notifTest" hidden>Envoyer une notification de test</button>
+    </div>
+    <div class="msg" id="notifMsg" role="status"></div>
+    <div class="btns" id="installBox" hidden><button type="button" class="btn secondary" id="installBtn">Installer l'appli PSG Live</button></div>
+  </form>
+</dialog>
 
 <main>
   <section class="tile hero" data-sec="match" id="hero" aria-live="polite">
@@ -393,6 +454,91 @@ body.filter-on [data-sec]:not(.show){display:none}
   load();
   setInterval(load, 60000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+
+  /* ---------- Appli installable et notifications ---------- */
+  const API = "api/";
+  const bell = $("bell"), sheet = $("notifSheet"), msg = $("notifMsg"), toggleBtn = $("notifToggle"), testBtn = $("notifTest");
+  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  let swReg = null, pushCfg = null, currentSub = null, installPrompt = null;
+  const setMsg = (t, kind = "") => { msg.textContent = t; msg.className = "msg" + (kind ? " " + kind : ""); };
+  const prefs = () => Object.fromEntries([...document.querySelectorAll("[data-pref]")].map(i => [i.dataset.pref, i.checked]));
+  const setPrefs = p => document.querySelectorAll("[data-pref]").forEach(i => { if (typeof p?.[i.dataset.pref] === "boolean") i.checked = p[i.dataset.pref]; });
+  const post = (path, body) => fetch(API + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+    .then(async r => { const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Erreur " + r.status); return j; });
+  const b64ToBytes = b64 => { const p = "=".repeat((4 - b64.length % 4) % 4); const raw = atob((b64 + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(raw, c => c.charCodeAt(0)); };
+
+  function renderNotifUI() {
+    const supported = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+    const blocked = supported && Notification.permission === "denied";
+    $("iosNote").hidden = !(isIOS && !standalone);
+    bell.classList.toggle("on", !!currentSub);
+    testBtn.hidden = !currentSub;
+    toggleBtn.textContent = currentSub ? "Désactiver les notifications" : "Activer les notifications";
+    toggleBtn.className = "btn " + (currentSub ? "danger" : "primary");
+    toggleBtn.disabled = !supported || blocked || (isIOS && !standalone);
+    if (!supported && !(isIOS && !standalone)) setMsg("Ce navigateur ne prend pas en charge les notifications.", "err");
+    else if (blocked) setMsg("Les notifications sont bloquées pour ce site. Autorisez-les dans les réglages du navigateur, puis revenez ici.", "err");
+  }
+
+  async function enable() {
+    toggleBtn.disabled = true; setMsg("Activation…");
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== "granted") { setMsg("Vous n'avez pas autorisé les notifications.", "err"); return; }
+      const sub = await swReg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(pushCfg.publicKey) });
+      await post("push/subscribe", { subscription: sub.toJSON(), prefs: prefs() });
+      currentSub = sub; setMsg("Notifications activées sur cet appareil.", "ok");
+    } catch (e) { setMsg("L'activation a échoué : " + e.message, "err"); }
+    finally { renderNotifUI(); }
+  }
+  async function disable() {
+    toggleBtn.disabled = true;
+    try {
+      const endpoint = currentSub.endpoint;
+      await currentSub.unsubscribe().catch(() => {});
+      await post("push/unsubscribe", { endpoint }).catch(() => {});
+      currentSub = null; setMsg("Notifications désactivées sur cet appareil.");
+    } finally { renderNotifUI(); }
+  }
+  toggleBtn.addEventListener("click", () => currentSub ? disable() : enable());
+  testBtn.addEventListener("click", async () => {
+    testBtn.disabled = true;
+    try { await post("push/test", { endpoint: currentSub.endpoint }); setMsg("Notification de test envoyée.", "ok"); }
+    catch (e) { setMsg(e.message, "err"); }
+    finally { testBtn.disabled = false; }
+  });
+  let prefTimer = null;
+  document.querySelectorAll("[data-pref]").forEach(i => i.addEventListener("change", () => {
+    if (!currentSub) return;
+    clearTimeout(prefTimer);
+    prefTimer = setTimeout(() => post("push/subscribe", { subscription: currentSub.toJSON(), prefs: prefs() })
+      .then(() => setMsg("Préférences enregistrées.", "ok")).catch(e => setMsg(e.message, "err")), 400);
+  }));
+  bell.addEventListener("click", () => { setMsg(""); renderNotifUI(); sheet.showModal(); });
+  sheet.addEventListener("click", e => { if (e.target === sheet) sheet.close(); });
+
+  window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installPrompt = e; $("installBox").hidden = false; });
+  $("installBtn").addEventListener("click", async () => { if (!installPrompt) return; installPrompt.prompt(); await installPrompt.userChoice.catch(() => {}); installPrompt = null; $("installBox").hidden = true; });
+
+  (async () => {
+    if (!("serviceWorker" in navigator)) return;
+    try { swReg = await navigator.serviceWorker.register("sw.js"); } catch (e) { return; }
+    try {
+      const r = await fetch(API + "push/config", { cache: "no-store" });
+      if (!r.ok) return; // pas de serveur de notifications (ex. GitHub Pages)
+      pushCfg = await r.json();
+    } catch (e) { return; }
+    bell.hidden = false;
+    currentSub = await swReg.pushManager?.getSubscription().catch(() => null) || null;
+    if (currentSub) {
+      try { const { prefs: p } = await post("push/prefs", { endpoint: currentSub.endpoint }); setPrefs(p); }
+      catch (e) { // abonnement inconnu du serveur : on le réenregistre
+        await post("push/subscribe", { subscription: currentSub.toJSON(), prefs: prefs() }).catch(() => {});
+      }
+    }
+    renderNotifUI();
+  })();
 })();
 </script>
 

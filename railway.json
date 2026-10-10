@@ -1,0 +1,11 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "watchPatterns": ["server/**", "package.json", "package-lock.json", "index.html", "sw.js", "manifest.webmanifest", "icons/**"]
+  },
+  "deploy": {
+    "startCommand": "npm start",
+    "healthcheckPath": "/healthz",
+    "restartPolicyType": "ON_FAILURE"
+  }
+}

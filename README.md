@@ -1,32 +1,76 @@
-# Actu PSG
+# PSG Live (Actu PSG)
 
-Site de suivi non officiel de l'actualité du Paris Saint-Germain : prochain match avec compte à rebours, compo probable, infirmerie, résultats, calendrier, classement de Ligue 1, mercato et fil d'actu.
+Site de suivi non officiel de l'actualité du Paris Saint-Germain, installable comme une appli : prochain match avec compte à rebours, score en direct, compo, infirmerie, résultats, calendrier, classement de Ligue 1, mercato, fil d'actu et notifications.
 
-## Fonctionnement
+## Ce que fait le serveur
 
-- `index.html` : la page, sans aucune dépendance. Elle relit `data.json` toutes les minutes et s'actualise sans recharger.
-- `data.json` : toutes les données affichées. Il est mis à jour automatiquement chaque heure par une tâche programmée Claude, qui fait un commit dans ce dépôt.
+Le serveur Node.js (`server/`) tourne sur Railway et :
 
-## Mise en ligne avec GitHub Pages
+- sert le site et l'appli installable (`index.html`, `manifest.webmanifest`, `sw.js`, `icons/`) ;
+- relit `data.json` sur GitHub toutes les 2 minutes (le fichier est mis à jour chaque heure par une tâche programmée Claude) ;
+- suit le match du PSG en direct et envoie des notifications : buts, coup d'envoi, mi-temps, score final, compo officielle ;
+- envoie une notification pour les nouvelles infos du fil d'actu (option désactivée par défaut) ;
+- garde les abonnements aux notifications dans MongoDB.
 
-1. Ouvrir **Settings → Pages** dans ce dépôt.
-2. Dans **Build and deployment**, choisir **Deploy from a branch**, puis la branche `main` et le dossier `/ (root)`.
-3. Enregistrer. Le site est disponible après une minute environ à l'adresse `https://xezy-b2.github.io/actu-psg/`.
+Sans serveur (GitHub Pages), le site fonctionne toujours, mais sans notifications.
 
-## Tester en local
+## Mise en ligne sur Railway
+
+1. Dans Railway : **New Project → Deploy from GitHub repo**, puis choisir `xezy-b2/actu-psg`.
+2. Dans l'onglet **Variables** du service, ajouter :
+
+| Variable | Obligatoire | Rôle |
+|---|---|---|
+| `MONGODB_URI` | Oui | Chaîne de connexion MongoDB Atlas (`mongodb+srv://…`) |
+| `VAPID_SUBJECT` | Oui | Votre adresse de contact, au format `mailto:vous@exemple.fr` |
+| `API_FOOTBALL_KEY` | Conseillé | Clé gratuite API-Football pour le score en direct ([dashboard.api-football.com](https://dashboard.api-football.com)) |
+| `MONGODB_DB` | Non | Nom de la base (par défaut `actu_psg`) |
+| `POLL_SECONDS` | Non | Intervalle de vérification pendant un match (120 s avec API-Football, 30 s avec Sofascore) |
+| `DATA_URL` | Non | Adresse de `data.json` (par défaut le fichier de ce dépôt sur GitHub) |
+
+3. Dans **Settings → Networking**, cliquer sur **Generate Domain** pour obtenir l'adresse publique du site.
+4. Dans MongoDB Atlas, menu **Network Access**, autoriser Railway à se connecter (voir plus bas).
+
+Les clés de chiffrement des notifications (VAPID) sont créées automatiquement au premier démarrage et enregistrées dans MongoDB. Ne les changez pas ensuite : tous les abonnements existants deviendraient invalides.
+
+Chaque modification du code redéploie automatiquement. Les mises à jour horaires de `data.json` ne redéploient pas : le serveur relit le fichier tout seul.
+
+### Accès MongoDB Atlas
+
+Railway n'a pas d'adresse IP fixe par défaut. Deux options :
+
+- autoriser toutes les adresses (`0.0.0.0/0`) avec un utilisateur de base dédié au site et un mot de passe long ;
+- ou activer les IP fixes de Railway (selon votre offre) et n'autoriser que celles-ci.
+
+## Source du score en direct
+
+- **API-Football** (si `API_FOOTBALL_KEY` est défini) : source officielle. L'offre gratuite permet 100 requêtes par jour, d'où une vérification toutes les 2 minutes pendant les matchs.
+- **Sofascore** (par défaut, sans clé) : plus rapide (30 s), mais l'API n'est pas officielle et peut bloquer les accès sans prévenir.
+
+## Installer l'appli
+
+- **Android / ordinateur (Chrome, Edge)** : bouton « Installer l'appli » dans le panneau des notifications, ou icône d'installation dans la barre d'adresse.
+- **iPhone (iOS 16.4 ou plus)** : dans Safari, **Partager → Sur l'écran d'accueil**, puis ouvrir l'appli depuis son icône pour activer les notifications.
+
+## Vérifier que tout marche
+
+- `GET /healthz` : le serveur répond.
+- `GET /api/status` : état des notifications, nombre d'abonnés, dernière lecture de `data.json` et match suivi.
+
+## Développement
 
 ```bash
-python3 -m http.server 8000
+npm install
+npm start      # http://localhost:3000 (abonnements en mémoire sans MONGODB_URI)
+npm test       # tests de détection des buts et des temps forts
 ```
-
-Puis ouvrir http://localhost:8000. Ouvrir `index.html` directement depuis le disque ne fonctionne pas, car le navigateur bloque la lecture de `data.json`.
 
 ## Structure de `data.json`
 
 | Champ | Contenu |
 |---|---|
 | `updatedAt` | Date de la dernière mise à jour (ISO UTC) |
-| `nextMatch` | Match en cours ou à venir : équipes, coup d'envoi, statut (`scheduled`, `live`, `final`), score, minute, événements |
+| `nextMatch` | Match en cours ou à venir : équipes, coup d'envoi, statut, score, minute, événements, `sofascoreId` pour le widget de score |
 | `lineup` | Compo probable ou officielle, lignes du gardien vers l'attaque |
 | `absents` | Blessés et incertains (`out` ou `doubt`) |
 | `results` / `fixtures` | Derniers résultats et prochains matchs |
