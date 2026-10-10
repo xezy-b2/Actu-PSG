@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Toute l'actualité du PSG : prochain match, compo, infirmerie, résultats, mercato et classement, mis à jour automatiquement.">
+<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230a3a7a'/%3E%3Crect x='13' width='6' height='32' fill='%23d6262b'/%3E%3Crect x='11' width='2' height='32' fill='%23fff'/%3E%3Crect x='19' width='2' height='32' fill='%23fff'/%3E%3C/svg%3E">
+<title>PSG Live</title>
+<style>
+/* Layout: Apple-style single column of rounded "tiles" under a frosted nav; hero tile for the next match, then a 2-col bento grid that stacks on phones. */
+:root{
+  --bg:#f5f5f7; --surface:#ffffff; --surface-2:#f0f0f3; --fg:#1d1d1f; --fg-2:#6e6e73; --fg-3:#a1a1a6;
+  --line:rgba(0,0,0,.08); --navy:#0a3a7a; --red:#d6262b; --accent:#0a5bd3; --glass:rgba(245,245,247,.72);
+  --win:#1f9d55; --draw:#8e8e93; --loss:#d6262b; --warn:#c77700;
+  --pitch-a:#0d4a32; --pitch-b:#0f5539; --pitch-line:rgba(255,255,255,.35);
+  --shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.05);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",system-ui,"Segoe UI",Roboto,Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+  --r-lg:22px; --r-md:14px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#000000; --surface:#1c1c1e; --surface-2:#2c2c2e; --fg:#f5f5f7; --fg-2:#a1a1a6; --fg-3:#6e6e73;
+  --line:rgba(255,255,255,.1); --navy:#5b8fe0; --red:#ff5a55; --accent:#4c9bff; --glass:rgba(22,22,24,.72);
+  --win:#34c776; --draw:#8e8e93; --loss:#ff5a55; --warn:#ffb340;
+  --pitch-a:#0b3a28; --pitch-b:#0d432e; --pitch-line:rgba(255,255,255,.28);
+  --shadow:none; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#000000; --surface:#1c1c1e; --surface-2:#2c2c2e; --fg:#f5f5f7; --fg-2:#a1a1a6; --fg-3:#6e6e73;
+  --line:rgba(255,255,255,.1); --navy:#5b8fe0; --red:#ff5a55; --accent:#4c9bff; --glass:rgba(22,22,24,.72);
+  --win:#34c776; --draw:#8e8e93; --loss:#ff5a55; --warn:#ffb340;
+  --pitch-a:#0b3a28; --pitch-b:#0d432e; --pitch-line:rgba(255,255,255,.28);
+  --shadow:none; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+
+/* Nav */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--glass);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--line)}
+.nav-in{max-width:1080px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:17px;letter-spacing:-.02em}
+.mark{width:26px;height:26px;border-radius:8px;background:var(--navy);position:relative;overflow:hidden;flex:none}
+.mark::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:6px;margin-left:-3px;background:var(--red);box-shadow:-5px 0 0 #fff,5px 0 0 #fff}
+.seg{display:flex;background:var(--surface-2);border-radius:10px;padding:2px;gap:2px;overflow-x:auto;scrollbar-width:none;flex:1 1 auto;max-width:100%;min-width:0}
+.seg::-webkit-scrollbar{display:none}
+.seg button{all:unset;cursor:pointer;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:500;color:var(--fg-2);white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.sync{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--fg-2);white-space:nowrap}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--win)}
+.dot.pulse{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* Page */
+main{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:28px 64px;display:flex;flex-direction:column;gap:20px}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-2)}
+h1,h2,h3{margin:0;text-wrap:balance}
+h2{font-size:22px;font-weight:700;letter-spacing:-.025em}
+.tile{background:var(--surface);border-radius:var(--r-lg);padding:22px;box-shadow:var(--shadow);min-width:0}
+.tile-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px}
+.tile-head small{color:var(--fg-2);font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.span2{grid-column:1/-1}
+@media (max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}}
+
+/* Hero */
+.hero{padding:28px 28px 24px;background:linear-gradient(160deg,var(--surface) 55%,color-mix(in srgb,var(--navy) 9%,var(--surface)));}
+.hero-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--surface-2);color:var(--fg-2)}
+.pill.live{background:color-mix(in srgb,var(--red) 14%,transparent);color:var(--red)}
+.pill.live .dot{background:var(--red)}
+.pill.final{background:color-mix(in srgb,var(--fg) 8%,transparent);color:var(--fg)}
+.versus{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;margin:26px 0 22px}
+.team{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;min-width:0}
+.crest{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:18px;letter-spacing:-.02em;color:#fff;background:var(--fg-3)}
+.crest.psg{background:var(--navy);box-shadow:inset 0 0 0 4px color-mix(in srgb,var(--red) 70%,transparent)}
+.team-name{font-size:19px;font-weight:600;letter-spacing:-.02em}
+.center{text-align:center}
+.score{font-size:56px;font-weight:700;letter-spacing:-.04em;font-variant-numeric:tabular-nums;line-height:1}
+.kick{font-size:44px;font-weight:700;letter-spacing:-.04em;font-variant-numeric:tabular-nums;line-height:1}
+.center small{display:block;color:var(--fg-2);font-size:13px;margin-top:8px}
+.count{display:flex;justify-content:center;gap:18px;margin-top:4px;font-variant-numeric:tabular-nums}
+.count div{display:flex;flex-direction:column;align-items:center}
+.count b{font-size:22px;font-weight:600}
+.count span{font-size:11px;color:var(--fg-2);text-transform:uppercase;letter-spacing:.05em}
+.facts{display:flex;flex-wrap:wrap;gap:8px 22px;justify-content:center;color:var(--fg-2);font-size:13px;border-top:1px solid var(--line);padding-top:16px}
+.facts b{color:var(--fg);font-weight:500}
+.probs{margin-top:16px}
+.probbar{display:flex;height:6px;border-radius:3px;overflow:hidden;gap:2px}
+.probbar i{display:block;height:100%}
+.problab{display:flex;justify-content:space-between;font-size:12px;color:var(--fg-2);margin-top:6px;font-variant-numeric:tabular-nums}
+.events{margin-top:14px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.events div{display:flex;gap:10px}
+.events b{font-variant-numeric:tabular-nums;color:var(--fg-2);width:36px;flex:none;font-weight:500}
+
+/* Pitch */
+.pitch{position:relative;border-radius:16px;overflow:hidden;background:repeating-linear-gradient(180deg,var(--pitch-a) 0 12.5%,var(--pitch-b) 12.5% 25%);aspect-ratio:3/3.6;max-width:100%;display:flex;flex-direction:column-reverse;justify-content:space-around;padding:18px 8px}
+.pitch::before{content:"";position:absolute;inset:10px;border:1.5px solid var(--pitch-line);border-radius:6px;pointer-events:none}
+.pitch::after{content:"";position:absolute;left:30%;right:30%;top:10px;height:14%;border:1.5px solid var(--pitch-line);border-top:0;pointer-events:none}
+.pline{display:flex;justify-content:space-around;position:relative;z-index:1}
+.pl{display:flex;flex-direction:column;align-items:center;gap:4px;width:22%;min-width:0}
+.pl i{width:30px;height:30px;border-radius:50%;background:#fff;color:#0a3a7a;display:grid;place-items:center;font-style:normal;font-size:11px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.pl span{font-size:11.5px;font-weight:600;color:#fff;text-align:center;line-height:1.15;text-shadow:0 1px 2px rgba(0,0,0,.5);overflow-wrap:anywhere}
+.lineup-meta{display:flex;justify-content:space-between;gap:10px;margin-top:12px;font-size:13px;color:var(--fg-2);flex-wrap:wrap}
+
+/* Lists */
+.list{display:flex;flex-direction:column}
+.row{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line);min-width:0}
+.row:first-child{border-top:0;padding-top:2px}
+.row .grow{flex:1;min-width:0}
+.row .sub{font-size:12px;color:var(--fg-2)}
+.badge{flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff}
+.badge.W{background:var(--win)}.badge.D{background:var(--draw)}.badge.L{background:var(--loss)}
+.res{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.date{font-size:12px;color:var(--fg-2);width:62px;flex:none;font-variant-numeric:tabular-nums}
+.status{flex:none;font-size:12px;font-weight:600;padding:3px 8px;border-radius:999px}
+.status.out{color:var(--loss);background:color-mix(in srgb,var(--loss) 12%,transparent)}
+.status.doubt{color:var(--warn);background:color-mix(in srgb,var(--warn) 14%,transparent)}
+.form{display:flex;gap:4px}
+.form .badge{width:22px;height:22px;font-size:11px;border-radius:6px}
+
+/* Table */
+.tablewrap{overflow-x:auto;margin:0 -6px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:14px}
+th{font-size:11px;font-weight:600;color:var(--fg-2);text-transform:uppercase;letter-spacing:.05em;text-align:right;padding:6px}
+th:nth-child(2){text-align:left}
+td{padding:8px 6px;text-align:right;border-top:1px solid var(--line)}
+td:nth-child(1){color:var(--fg-2);width:28px}
+td:nth-child(2){text-align:left;white-space:nowrap}
+td:last-child{font-weight:700}
+tr.me td{background:color-mix(in srgb,var(--navy) 10%,transparent)}
+tr.me td:nth-child(2){font-weight:700}
+
+/* Mercato */
+.merc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+@media (max-width:520px){.merc{grid-template-columns:minmax(0,1fr)}}
+.merc h3{font-size:13px;font-weight:600;color:var(--fg-2);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.arrow{font-size:15px}
+.fee{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.tot{font-size:12px;color:var(--fg-2);margin-top:6px}
+
+/* News */
+.news{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:760px){.news{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface-2);border-radius:var(--r-md);padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0;color:inherit;transition:transform .2s ease}
+a.card:hover{text-decoration:none;transform:translateY(-2px)}
+.card h3{font-size:16px;font-weight:600;letter-spacing:-.015em;line-height:1.3}
+.card p{margin:0;color:var(--fg-2);font-size:14px}
+.meta{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--fg-2);flex-wrap:wrap}
+.chip{font-weight:600;font-size:11px;padding:2px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}
+.c-match{color:var(--navy);background:color-mix(in srgb,var(--navy) 13%,transparent)}
+.c-mercato{color:#8a4bd6;background:color-mix(in srgb,#8a4bd6 14%,transparent)}
+.c-compo{color:var(--win);background:color-mix(in srgb,var(--win) 14%,transparent)}
+.c-infirmerie{color:var(--loss);background:color-mix(in srgb,var(--loss) 12%,transparent)}
+.c-club,.c-europe{color:var(--fg-2);background:var(--line)}
+.empty{color:var(--fg-2);font-size:14px;padding:24px 0;text-align:center}
+.skeleton{height:14px;border-radius:7px;background:var(--surface-2);margin:10px 0}
+footer{max-width:1080px;margin:0 auto;padding:0 16px 40px;color:var(--fg-3);font-size:12px}
+
+[data-sec]{scroll-margin-top:72px}
+body.filter-on [data-sec]:not(.show){display:none}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}body{margin:0}</style>
+</head>
+<body>
+
+
+<header class="nav">
+  <div class="nav-in">
+    <div class="brand"><span class="mark" aria-hidden="true"></span>PSG Live</div>
+    <nav class="seg" id="seg" aria-label="Rubriques">
+      <button type="button" data-f="all" aria-pressed="true">Tout</button>
+      <button type="button" data-f="match" aria-pressed="false">Matchs</button>
+      <button type="button" data-f="compo" aria-pressed="false">Compo</button>
+      <button type="button" data-f="mercato" aria-pressed="false">Mercato</button>
+      <button type="button" data-f="news" aria-pressed="false">Actu</button>
+      <button type="button" data-f="table" aria-pressed="false">Classement</button>
+    </nav>
+    <div class="sync" id="sync"><span class="dot pulse"></span><span id="syncTxt">Connexion…</span></div>
+  </div>
+</header>
+
+<main>
+  <section class="tile hero" data-sec="match" id="hero" aria-live="polite">
+    <div class="eyebrow">Prochain match</div>
+    <div class="skeleton" style="width:40%;margin-top:18px"></div>
+    <div class="skeleton" style="width:70%"></div>
+    <p class="empty">L'actualité du PSG arrive. Elle se met à jour automatiquement, sans recharger la page.</p>
+  </section>
+
+  <div class="grid">
+    <section class="tile" data-sec="compo" id="lineup"><div class="tile-head"><h2>Compo probable</h2></div><div class="skeleton"></div></section>
+    <section class="tile" data-sec="compo" id="absents"><div class="tile-head"><h2>Infirmerie</h2></div><div class="skeleton"></div></section>
+    <section class="tile" data-sec="match" id="results"><div class="tile-head"><h2>Derniers résultats</h2></div><div class="skeleton"></div></section>
+    <section class="tile" data-sec="match" id="fixtures"><div class="tile-head"><h2>Calendrier</h2></div><div class="skeleton"></div></section>
+    <section class="tile span2" data-sec="news" id="news"><div class="tile-head"><h2>Fil d'actu</h2></div><div class="skeleton"></div></section>
+    <section class="tile" data-sec="mercato" id="mercato"><div class="tile-head"><h2>Mercato</h2></div><div class="skeleton"></div></section>
+    <section class="tile" data-sec="table" id="table"><div class="tile-head"><h2>Ligue 1</h2></div><div class="skeleton"></div></section>
+  </div>
+</main>
+<footer id="foot">Site de suivi non officiel, sans lien avec le Paris Saint-Germain. Données compilées depuis la presse sportive et mises à jour automatiquement chaque heure.</footer>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const TZ = "Europe/Paris";
+  const fmt = (d, o) => new Intl.DateTimeFormat("fr-FR", {timeZone: TZ, ...o}).format(d);
+  const toDate = s => { if (!s) return null; const d = new Date(s.length === 10 ? s + "T12:00:00Z" : s); return isNaN(d) ? null : d; };
+  const isPSG = n => /paris saint|^psg$|paris sg/i.test(n || "");
+  const short = n => ({"Paris Saint-Germain":"PSG"}[n] || n);
+  const initials = n => isPSG(n) ? "PSG" : (n || "?").replace(/^(FC|AS|OGC|RC|Stade|Olympique|AJ|SCO)\s+/i, "").slice(0, 3).toUpperCase();
+  let state = null, lastSnapshotAt = null;
+
+  /* ---------- filter ---------- */
+  const seg = $("seg");
+  const applyFilter = f => {
+    seg.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === f)));
+    document.body.classList.toggle("filter-on", f !== "all");
+    document.querySelectorAll("[data-sec]").forEach(s => s.classList.toggle("show", s.dataset.sec === f));
+    try { localStorage.setItem("psg-filter", f); } catch (e) {}
+  };
+  seg.addEventListener("click", e => { const b = e.target.closest("button"); if (b) applyFilter(b.dataset.f); });
+  try { const f = localStorage.getItem("psg-filter"); if (f) applyFilter(f); } catch (e) {}
+
+  /* ---------- hero ---------- */
+  function matchPhase(m) {
+    const k = toDate(m.kickoff); const now = Date.now();
+    if (m.status === "final") return "final";
+    if (m.status === "live") return "live";
+    if (k && now >= k.getTime() && now < k.getTime() + 115 * 60000) return "live";
+    if (k && now >= k.getTime() + 115 * 60000) return "done";
+    return "scheduled";
+  }
+  function renderHero() {
+    const m = state?.nextMatch; const el = $("hero");
+    if (!m) return;
+    const k = toDate(m.kickoff); const ph = matchPhase(m);
+    const hasScore = m.score && m.score.home != null && m.score.away != null && (ph === "live" || ph === "final" || ph === "done");
+    const pill = ph === "live" ? `<span class="pill live"><span class="dot pulse"></span>En direct${m.minute ? " · " + esc(m.minute) + "'" : ""}</span>`
+      : ph === "final" ? `<span class="pill final">Terminé</span>`
+      : ph === "done" ? `<span class="pill">Terminé · score en cours de mise à jour</span>`
+      : `<span class="pill">${k ? esc(fmt(k, {weekday:"long", day:"numeric", month:"long"})) : "Date à confirmer"}</span>`;
+    let center;
+    if (hasScore) center = `<div class="score">${esc(m.score.home)} – ${esc(m.score.away)}</div><small>${ph === "live" ? "Score en direct" : "Score final"}</small>`;
+    else if (ph === "scheduled" && k) center = `<div class="kick">${esc(fmt(k, {hour:"2-digit", minute:"2-digit"}))}</div><div class="count" id="count"></div>`;
+    else center = `<div class="kick">–</div>`;
+    const p = m.probs;
+    const probs = p && ph === "scheduled" ? `<div class="probs"><div class="probbar" role="img" aria-label="Probabilités de victoire"><i style="width:${p.home}%;background:var(--navy)"></i><i style="width:${p.draw}%;background:var(--draw)"></i><i style="width:${p.away}%;background:var(--fg-3)"></i></div>
+      <div class="problab"><span>${esc(short(m.home))} ${Math.round(p.home)} %</span><span>Nul ${Math.round(p.draw)} %</span><span>${esc(short(m.away))} ${Math.round(p.away)} %</span></div></div>` : "";
+    const ev = (m.events || []).length ? `<div class="events">${m.events.map(e => `<div><b>${esc(e.min)}'</b><span>${esc(e.text)}</span></div>`).join("")}</div>` : "";
+    const facts = [m.venue && `<span><b>${esc(m.venue)}</b></span>`, m.tv && `<span>TV <b>${esc(m.tv)}</b></span>`, m.referee && `<span>Arbitre <b>${esc(m.referee)}</b></span>`].filter(Boolean).join("");
+    el.innerHTML = `<div class="hero-top"><div class="eyebrow">${esc(m.competition || "")}${m.round ? " · " + esc(m.round) : ""}</div>${pill}</div>
+      <div class="versus">
+        <div class="team"><div class="crest ${isPSG(m.home) ? "psg" : ""}">${esc(initials(m.home))}</div><div class="team-name">${esc(m.home)}</div></div>
+        <div class="center">${center}</div>
+        <div class="team"><div class="crest ${isPSG(m.away) ? "psg" : ""}">${esc(initials(m.away))}</div><div class="team-name">${esc(m.away)}</div></div>
+      </div>${ev}${facts ? `<div class="facts">${facts}</div>` : ""}${probs}`;
+    tick();
+  }
+  function tick() {
+    const c = $("count"); const k = toDate(state?.nextMatch?.kickoff);
+    if (!c || !k) return;
+    let s = Math.max(0, Math.floor((k - Date.now()) / 1000));
+    if (s === 0) { renderHero(); return; }
+    const d = Math.floor(s / 86400); s %= 86400; const h = Math.floor(s / 3600); s %= 3600; const mi = Math.floor(s / 60); const se = s % 60;
+    const parts = (d ? [[d, "jours"]] : []).concat([[h, "h"], [mi, "min"], [se, "s"]]);
+    c.innerHTML = parts.map(([v, l]) => `<div><b>${String(v).padStart(2, "0")}</b><span>${l}</span></div>`).join("");
+  }
+
+  /* ---------- lineup ---------- */
+  function renderLineup() {
+    const L = state?.lineup; const el = $("lineup");
+    const head = `<div class="tile-head"><h2>Compo probable</h2><small>${esc(L?.formation || "")}</small></div>`;
+    if (!L || !L.lines?.length) { el.innerHTML = head + `<p class="empty">La compo sera publiée avant le prochain match.</p>`; return; }
+    const lines = L.lines.map(line => `<div class="pline">${line.map(n => {
+      const last = String(n).split(" ").slice(-1)[0];
+      return `<div class="pl"><i>${esc(last.slice(0, 3).toUpperCase())}</i><span>${esc(n)}</span></div>`; }).join("")}</div>`).join("");
+    el.innerHTML = head + `<div class="pitch" role="img" aria-label="Composition probable ${esc(L.formation || "")}: ${esc(L.lines.flat().join(", "))}">${lines}</div>
+      <div class="lineup-meta"><span>${esc(L.coach ? "Entraîneur : " + L.coach : "")}</span><span>${esc(L.source ? "Source : " + L.source : "")}</span></div>
+      ${L.note ? `<p class="sub" style="margin:8px 0 0;color:var(--fg-2);font-size:13px">${esc(L.note)}</p>` : ""}`;
+  }
+
+  /* ---------- absents ---------- */
+  function renderAbsents() {
+    const A = state?.absents || []; const el = $("absents");
+    const head = `<div class="tile-head"><h2>Infirmerie</h2><small>${A.length ? A.length + " joueur" + (A.length > 1 ? "s" : "") : ""}</small></div>`;
+    el.innerHTML = head + (A.length ? `<div class="list">${A.map(a => `<div class="row"><div class="grow"><div>${esc(a.name)}</div><div class="sub">${esc(a.reason)}</div></div><span class="status ${a.status === "out" ? "out" : "doubt"}">${a.status === "out" ? "Forfait" : "Incertain"}</span></div>`).join("")}</div>` : `<p class="empty">Aucun blessé signalé.</p>`);
+  }
+
+  /* ---------- results / fixtures ---------- */
+  const outcome = r => { const home = isPSG(r.home); const us = home ? r.hs : r.as, them = home ? r.as : r.hs; return us > them ? "W" : us === them ? "D" : "L"; };
+  const dShort = s => { const d = toDate(s); return d ? fmt(d, {day:"numeric", month:"short"}) : ""; };
+  function renderResults() {
+    const R = (state?.results || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    const el = $("results");
+    const form = R.slice(0, 5).reverse().map(r => `<span class="badge ${outcome(r)}" title="${esc(r.home)} ${r.hs}-${r.as} ${esc(r.away)}">${{W:"V",D:"N",L:"D"}[outcome(r)]}</span>`).join("");
+    el.innerHTML = `<div class="tile-head"><h2>Derniers résultats</h2><div class="form" aria-label="Forme récente">${form}</div></div>` +
+      (R.length ? `<div class="list">${R.slice(0, 8).map(r => { const o = outcome(r); return `<div class="row"><span class="badge ${o}" aria-label="${{W:"Victoire",D:"Nul",L:"Défaite"}[o]}">${{W:"V",D:"N",L:"D"}[o]}</span><div class="grow"><div>${esc(short(r.home))} – ${esc(short(r.away))}</div><div class="sub">${esc(r.competition)} · ${esc(dShort(r.date))}</div></div><span class="res">${esc(r.hs)} – ${esc(r.as)}</span></div>`; }).join("")}</div>` : `<p class="empty">Pas encore de match joué.</p>`);
+  }
+  function renderFixtures() {
+    const F = (state?.fixtures || []).slice().sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    const el = $("fixtures");
+    el.innerHTML = `<div class="tile-head"><h2>Calendrier</h2><small>À venir</small></div>` + (F.length ? `<div class="list">${F.slice(0, 7).map(f => {
+      const d = toDate(f.date); const hasTime = f.date && f.date.length > 10;
+      return `<div class="row"><span class="date">${d ? esc(fmt(d, {weekday:"short", day:"numeric", month:"short"})) : ""}</span><div class="grow"><div>${esc(short(f.home))} – ${esc(short(f.away))}</div><div class="sub">${esc(f.competition)}</div></div><span class="res" style="font-weight:500;color:var(--fg-2)">${hasTime && d ? esc(fmt(d, {hour:"2-digit", minute:"2-digit"})) : ""}</span></div>`; }).join("")}</div>` : `<p class="empty">Calendrier à venir.</p>`);
+  }
+
+  /* ---------- table ---------- */
+  function renderTable() {
+    const S = state?.standings || []; const el = $("table");
+    el.innerHTML = `<div class="tile-head"><h2>Ligue 1</h2><small>Classement</small></div>` + (S.length ? `<div class="tablewrap"><table><thead><tr><th>#</th><th>Club</th><th>J</th><th>V</th><th>N</th><th>D</th><th>Pts</th></tr></thead><tbody>${S.map(t => `<tr class="${isPSG(t.team) ? "me" : ""}"><td>${esc(t.rank)}</td><td>${esc(t.team)}</td><td>${esc(t.played ?? (t.w + t.d + t.l))}</td><td>${esc(t.w)}</td><td>${esc(t.d)}</td><td>${esc(t.l)}</td><td>${esc(t.pts)}</td></tr>`).join("")}</tbody></table></div>` : `<p class="empty">Classement indisponible.</p>`);
+  }
+
+  /* ---------- mercato ---------- */
+  function renderMercato() {
+    const T = state?.transfers; const el = $("mercato");
+    const head = `<div class="tile-head"><h2>Mercato</h2><small>${esc(T?.window || "")}</small></div>`;
+    if (!T) { el.innerHTML = head + `<p class="empty">Aucune info mercato.</p>`; return; }
+    const sum = arr => arr.reduce((s, x) => s + (parseFloat(String(x.fee).replace(",", ".")) || 0), 0);
+    const col = (title, arrow, arr, color) => `<div><h3><span class="arrow" style="color:${color}">${arrow}</span>${title}</h3><div class="list">${(arr || []).map(x => `<div class="row"><div class="grow"><div>${esc(x.player)}</div><div class="sub">${esc(x.club)}</div></div><span class="fee">${esc(x.fee)}</span></div>`).join("") || `<p class="empty">—</p>`}</div><div class="tot">Total ${Math.round(sum(arr || []) * 10) / 10} M€</div></div>`;
+    el.innerHTML = head + `<div class="merc">${col("Arrivées", "↓", T.in, "var(--win)")}${col("Départs", "↑", T.out, "var(--loss)")}</div>${T.rumors?.length ? `<h3 style="font-size:13px;color:var(--fg-2);margin:18px 0 4px">Rumeurs</h3><div class="list">${T.rumors.map(r => `<div class="row"><div class="grow">${esc(r)}</div></div>`).join("")}</div>` : ""}`;
+  }
+
+  /* ---------- news ---------- */
+  const CATS = {match:"Match", mercato:"Mercato", compo:"Compo", infirmerie:"Infirmerie", club:"Club", europe:"Europe"};
+  function ago(s) {
+    const d = toDate(s); if (!d) return "";
+    if (s.length === 10) return fmt(d, {day:"numeric", month:"short"});
+    const m = Math.round((Date.now() - d) / 60000);
+    if (m < 1) return "à l'instant"; if (m < 60) return `il y a ${m} min`; if (m < 1440) return `il y a ${Math.round(m / 60)} h`;
+    return fmt(d, {day:"numeric", month:"short"});
+  }
+  function renderNews() {
+    const N = (state?.news || []).slice().sort((a, b) => String(b.publishedAt).localeCompare(String(a.publishedAt)));
+    const el = $("news");
+    el.innerHTML = `<div class="tile-head"><h2>Fil d'actu</h2><small>${N.length} articles</small></div>` + (N.length ? `<div class="news">${N.slice(0, 24).map(n => {
+      const safeUrl = /^https:\/\//.test(n.url || "") ? n.url : "";
+      const tag = safeUrl ? "a" : "div";
+      return `<${tag} class="card" ${safeUrl ? `href="${esc(safeUrl)}" target="_blank" rel="noopener"` : ""}>
+        <div class="meta"><span class="chip c-${esc(n.category)}">${esc(CATS[n.category] || n.category)}</span><span>${esc(ago(n.publishedAt))}</span>${n.source ? `<span>· ${esc(n.source)}</span>` : ""}</div>
+        <h3>${esc(n.title)}</h3>${n.summary ? `<p>${esc(n.summary)}</p>` : ""}</${tag}>`; }).join("")}</div>` : `<p class="empty">Pas encore d'articles.</p>`);
+  }
+
+  function renderSync() {
+    const u = toDate(state?.updatedAt);
+    $("syncTxt").textContent = u ? "Mis à jour " + ago(state.updatedAt) : "En direct";
+  }
+  function renderAll() { renderHero(); renderLineup(); renderAbsents(); renderResults(); renderFixtures(); renderTable(); renderMercato(); renderNews(); renderSync(); }
+
+  setInterval(() => { if (state) { tick(); renderSync(); const ph = state.nextMatch && matchPhase(state.nextMatch); if (ph !== renderHero._ph) { renderHero._ph = ph; renderHero(); } } }, 1000);
+
+  /* ---------- data (data.json dans le dépôt, relu chaque minute) ---------- */
+  let lastStamp = null;
+  async function load() {
+    try {
+      const r = await fetch("data.json?t=" + Date.now(), {cache: "no-store"});
+      if (!r.ok) throw new Error(r.status);
+      const d = await r.json();
+      document.querySelector("#sync .dot").classList.add("pulse");
+      if (JSON.stringify(d) !== lastStamp) { lastStamp = JSON.stringify(d); state = d; renderAll(); }
+      else renderSync();
+    } catch (e) {
+      $("syncTxt").textContent = state ? "Hors ligne · dernières données affichées" : "Impossible de charger les données";
+      document.querySelector("#sync .dot").classList.remove("pulse");
+    }
+  }
+  load();
+  setInterval(load, 60000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+})();
+</script>
+
+</body>
+</html>

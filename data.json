@@ -1,0 +1,102 @@
+{
+  "updatedAt": "2026-10-10T16:00:00Z",
+  "nextMatch": {
+    "competition": "Ligue 1",
+    "round": "6e journée",
+    "home": "Paris Saint-Germain",
+    "away": "Le Mans FC",
+    "kickoff": "2026-10-10T18:45:00Z",
+    "venue": "Parc des Princes",
+    "tv": "Ligue 1+ · DAZN",
+    "referee": "Mathieu Vernice",
+    "probs": {"home": 85.4, "draw": 9.4, "away": 5.2},
+    "status": "scheduled",
+    "score": {"home": null, "away": null},
+    "minute": null,
+    "events": []
+  },
+  "lineup": {
+    "formation": "4-3-3",
+    "coach": "Luis Enrique",
+    "source": "Flashscore",
+    "note": "Hakimi et Dembélé pourraient être ménagés. Zaïre-Emery, de retour à l'entraînement collectif, peut postuler.",
+    "lines": [
+      ["Safonov"],
+      ["Digne", "Hernandez", "Zabarnyi", "Neves"],
+      ["Ruiz", "Beraldo", "Akliouche"],
+      ["Godts", "Kvaratskhelia", "Doué"]
+    ]
+  },
+  "absents": [
+    {"name": "Senny Mayulu", "reason": "Cuisse · environ 4 semaines", "status": "out"},
+    {"name": "Achraf Hakimi", "reason": "Gêne à la cuisse, pourrait être ménagé", "status": "doubt"},
+    {"name": "Ousmane Dembélé", "reason": "Gestion de l'effort", "status": "doubt"},
+    {"name": "Ferran Torres", "reason": "Douleur à la cheville", "status": "doubt"}
+  ],
+  "results": [
+    {"date": "2026-09-20", "competition": "Ligue 1 · J5", "home": "Olympique de Marseille", "away": "Paris Saint-Germain", "hs": 1, "as": 2},
+    {"date": "2026-09-13", "competition": "Ligue 1 · J4", "home": "Stade Brestois", "away": "Paris Saint-Germain", "hs": 0, "as": 1},
+    {"date": "2026-09-09", "competition": "Ligue des champions · J1", "home": "Paris Saint-Germain", "away": "Slovan Bratislava", "hs": 6, "as": 1},
+    {"date": "2026-09-04", "competition": "Ligue 1 · J3", "home": "Paris Saint-Germain", "away": "AS Monaco", "hs": 1, "as": 2},
+    {"date": "2026-08-28", "competition": "Ligue 1 · J2", "home": "Lille OSC", "away": "Paris Saint-Germain", "hs": 2, "as": 2},
+    {"date": "2026-08-23", "competition": "Ligue 1 · J1", "home": "Stade Rennais", "away": "Paris Saint-Germain", "hs": 2, "as": 2}
+  ],
+  "fixtures": [
+    {"date": "2026-10-14", "competition": "Ligue des champions", "home": "Manchester City", "away": "Paris Saint-Germain"},
+    {"date": "2026-10-17T15:15:00Z", "competition": "Ligue 1 · J7", "home": "RC Strasbourg", "away": "Paris Saint-Germain"},
+    {"date": "2026-10-20", "competition": "Ligue des champions", "home": "Paris Saint-Germain", "away": "FC Barcelone"},
+    {"date": "2026-10-25T19:45:00Z", "competition": "Ligue 1 · J8", "home": "Paris Saint-Germain", "away": "Olympique Lyonnais"},
+    {"date": "2026-10-30T18:00:00Z", "competition": "Ligue 1 · J9", "home": "Le Havre AC", "away": "Paris Saint-Germain"},
+    {"date": "2026-11-07T19:45:00Z", "competition": "Ligue 1 · J10", "home": "Paris Saint-Germain", "away": "ESTAC Troyes"}
+  ],
+  "standings": [
+    {"rank": 1, "team": "Lille OSC", "w": 4, "d": 1, "l": 1, "pts": 13},
+    {"rank": 2, "team": "AS Monaco", "w": 4, "d": 1, "l": 0, "pts": 13},
+    {"rank": 3, "team": "Olympique Lyonnais", "w": 3, "d": 2, "l": 1, "pts": 11},
+    {"rank": 4, "team": "Paris FC", "w": 3, "d": 2, "l": 0, "pts": 11},
+    {"rank": 5, "team": "Stade Rennais", "w": 3, "d": 1, "l": 1, "pts": 10},
+    {"rank": 6, "team": "Paris Saint-Germain", "w": 2, "d": 2, "l": 1, "pts": 8},
+    {"rank": 7, "team": "RC Lens", "w": 2, "d": 1, "l": 3, "pts": 7},
+    {"rank": 8, "team": "Angers SCO", "w": 2, "d": 1, "l": 2, "pts": 7},
+    {"rank": 9, "team": "RC Strasbourg", "w": 2, "d": 1, "l": 2, "pts": 7},
+    {"rank": 10, "team": "Le Mans FC", "w": 1, "d": 3, "l": 1, "pts": 6},
+    {"rank": 11, "team": "AJ Auxerre", "w": 2, "d": 0, "l": 3, "pts": 6},
+    {"rank": 12, "team": "Stade Brestois", "w": 1, "d": 2, "l": 2, "pts": 5},
+    {"rank": 13, "team": "FC Lorient", "w": 1, "d": 2, "l": 2, "pts": 5},
+    {"rank": 14, "team": "Toulouse FC", "w": 1, "d": 2, "l": 2, "pts": 5},
+    {"rank": 15, "team": "OGC Nice", "w": 1, "d": 2, "l": 2, "pts": 5},
+    {"rank": 16, "team": "ESTAC Troyes", "w": 1, "d": 1, "l": 3, "pts": 4},
+    {"rank": 17, "team": "Olympique de Marseille", "w": 1, "d": 0, "l": 4, "pts": 3},
+    {"rank": 18, "team": "Le Havre AC", "w": 0, "d": 2, "l": 4, "pts": 2}
+  ],
+  "transfers": {
+    "window": "Été 2026",
+    "in": [
+      {"player": "Maghnes Akliouche", "club": "AS Monaco", "fee": "50 M€"},
+      {"player": "Ferran Torres", "club": "FC Barcelone", "fee": "48,5 M€"},
+      {"player": "Mika Godts", "club": "Ajax", "fee": "45 M€"},
+      {"player": "Lucas Digne", "club": "Aston Villa", "fee": "7 M€"},
+      {"player": "Khalil Ayari", "club": "Stade Tunisien", "fee": "1,5 M€"}
+    ],
+    "out": [
+      {"player": "Bradley Barcola", "club": "Liverpool", "fee": "125 M€"},
+      {"player": "Gonçalo Ramos", "club": "AC Milan", "fee": "74 M€"},
+      {"player": "Ibrahim Mbaye", "club": "Aston Villa", "fee": "55 M€"},
+      {"player": "Randal Kolo Muani", "club": "Juventus", "fee": "41,2 M€"},
+      {"player": "Kang-In Lee", "club": "Atlético de Madrid", "fee": "35 M€"},
+      {"player": "Noham Kamara", "club": "Olympique Lyonnais", "fee": "4,1 M€"}
+    ],
+    "rumors": ["Luis Enrique se dit ouvert à des renforts lors du mercato d'hiver."]
+  },
+  "news": [
+    {"id": "compo-lemans", "category": "compo", "title": "PSG – Le Mans : Safonov dans les buts, Godts et Akliouche titulaires", "summary": "Luis Enrique devrait faire tourner avant le déplacement à Manchester City, avec un 4-3-3 sans Hakimi ni Dembélé au coup d'envoi.", "source": "Flashscore", "url": "https://www.flashscore.fr/actualites/football-ligue-1-psg-le-mans-ou-regarder-le-match-de-ligue-1-j6-heure-et-compos/SjOJrzTh/", "publishedAt": "2026-10-10"},
+    {"id": "infirmerie-mayulu", "category": "infirmerie", "title": "Mayulu out un mois, Hakimi et Torres incertains", "summary": "Touché à la cuisse, Senny Mayulu manquera environ quatre semaines. Hakimi (cuisse) et Ferran Torres (cheville) sont en doute pour Le Mans.", "source": "Flashscore", "url": "https://www.flashscore.fr/actualites/football-ligue-1-psg-le-mans-ou-regarder-le-match-de-ligue-1-j6-heure-et-compos/SjOJrzTh/", "publishedAt": "2026-10-10"},
+    {"id": "conf-le", "category": "club", "title": "Luis Enrique veut faire remonter Paris au classement", "summary": "En conférence de presse, le coach estime que son équipe méritait plus de points en ce début de saison et attend une première victoire au Parc en Ligue 1.", "source": "PSG.fr", "url": "https://psg.fr/content/luis-enrique-nous-voulons-monter-au-classement-paris-saint-germain-le-mans-fc-conference-de-presse-ligue-1-20262027", "publishedAt": "2026-10-09"},
+    {"id": "kvara", "category": "club", "title": "Luis Enrique rassure sur la forme de Kvaratskhelia", "summary": "Pour l'entraîneur, les hauts et les bas du Géorgien sont normaux et sa forme n'a rien d'inquiétant.", "source": "Foot Mercato", "url": "https://www.footmercato.net/a3995880731951112897-psg-luis-enrique-calme-le-jeu-pour-kvaratskhelia", "publishedAt": "2026-10-09"},
+    {"id": "europe-city-barca", "category": "europe", "title": "Manchester City puis Barcelone : une semaine européenne XXL", "summary": "Après Le Mans, Paris se rend à Manchester le 14 octobre, puis reçoit le Barça au Parc des Princes le 20 octobre.", "source": "Foot Mercato", "url": "https://www.footmercato.net/club/psg/calendrier", "publishedAt": "2026-10-08"},
+    {"id": "mercato-hiver", "category": "mercato", "title": "Mercato d'hiver : Luis Enrique reste attentif", "summary": "Le technicien espagnol n'exclut pas de nouveaux renforts en janvier pour améliorer l'effectif.", "source": "Soccerway", "url": "https://fr.soccerway.com/actualites/football-ligue-1-luis-enrique-ouvert-et-attentif-pour-ameliorer-le-psg-au-mercato-d-hiver/Ucohkf26", "publishedAt": "2026-10-05"},
+    {"id": "om-psg", "category": "match", "title": "Paris s'impose au Vélodrome (1-2)", "summary": "Deuxième victoire de suite en Ligue 1 pour le PSG, qui enfonce un OM en grande difficulté au classement.", "source": "Foot Mercato", "url": "https://www.footmercato.net/club/psg/calendrier", "publishedAt": "2026-09-20"},
+    {"id": "slovan", "category": "match", "title": "Triplé de Ferran Torres, Paris écrase Bratislava (6-1)", "summary": "Pour son entrée en Ligue des champions, le PSG a déroulé au Parc des Princes avec un triplé de sa recrue espagnole.", "source": "Flashscore", "url": "https://www.flashscore.fr/actualites/football-ligue-des-champions-le-psg-entame-sa-quete-du-triple-en-battant-largement-le-slovan-bratislava/WW8wK81D/", "publishedAt": "2026-09-09"},
+    {"id": "bilan-mercato", "category": "mercato", "title": "Bilan du mercato d'été : Barcola vendu 125 M€ à Liverpool", "summary": "Paris a recruté Akliouche, Ferran Torres, Godts et Digne, et a encaissé plus de 330 M€ de ventes.", "source": "Foot Mercato", "url": "https://www.footmercato.net/club/psg/tableau/", "publishedAt": "2026-09-02"}
+  ]
+}
