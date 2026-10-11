@@ -3,8 +3,9 @@ const assert = require("node:assert");
 const { buildMatches, buildStandings, parseRss, categorize, cleanTeam } = require("./autodata");
 const { mergeData } = require("./merge");
 
+const crestOf = n => /Paris Saint/.test(n) ? "https://crests.football-data.org/524.png" : `https://crests.football-data.org/${n.length}.png`;
 const NOW = Date.parse("2026-10-11T10:00:00Z");
-const fd = (id, date, home, away, status, hs, as, code = "FL1", md = 6) => ({ id, utcDate: date, status, matchday: md, competition: { code, name: code === "CL" ? "UEFA Champions League" : "Ligue 1" }, homeTeam: { name: home }, awayTeam: { name: away }, score: { fullTime: { home: hs, away: as } }, referees: [{ name: "M. Vernice", type: "REFEREE" }], venue: "Parc des Princes" });
+const fd = (id, date, home, away, status, hs, as, code = "FL1", md = 6) => ({ id, utcDate: date, status, matchday: md, competition: { code, name: code === "CL" ? "UEFA Champions League" : "Ligue 1" }, homeTeam: { name: home, crest: crestOf(home) }, awayTeam: { name: away, crest: crestOf(away) }, score: { fullTime: { home: hs, away: as } }, referees: [{ name: "M. Vernice", type: "REFEREE" }], venue: "Parc des Princes" });
 const matches = [
   fd(1, "2026-09-20T18:45:00Z", "Olympique de Marseille", "Paris Saint-Germain FC", "FINISHED", 1, 2, "FL1", 5),
   fd(2, "2026-10-10T18:45:00Z", "Paris Saint-Germain FC", "Le Mans FC", "FINISHED", 3, 1, "FL1", 6),
@@ -20,6 +21,8 @@ test("matchs : résultats, prochain match et calendrier", () => {
   assert.equal(r.nextMatch.home, "Manchester City");
   assert.equal(r.nextMatch.competition, "Ligue des champions");
   assert.equal(r.nextMatch.status, "scheduled");
+  assert.equal(r.nextMatch.awayCrest, "https://crests.football-data.org/524.png");
+  assert.equal(r.crests["Paris Saint-Germain"], "https://crests.football-data.org/524.png");
   assert.equal(r.fixtures[0].home, "RC Strasbourg Alsace");
   assert.equal(r.fixtures[1].date, "2026-11-28"); // date sans heure confirmée
   // Le soir du match, juste après la fin : on garde le score final affiché.

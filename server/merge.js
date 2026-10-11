@@ -22,12 +22,15 @@ function mergeData(base = {}, auto = {}, live = null, now = Date.now()) {
   if (auto.results?.length) out.results = auto.results;
   if (auto.fixtures?.length) out.fixtures = auto.fixtures;
   if (auto.standings?.length) out.standings = auto.standings;
+  const crests = { ...(auto.crests || {}) };
+  for (const t of auto.standings || []) if (t.crest) crests[t.team] = t.crest;
+  if (Object.keys(crests).length) out.crests = crests;
 
   // Prochain match : celui de football-data, enrichi des infos rédigées si c'est le même.
   if (auto.nextMatch) {
     const same = sameMatch(base.nextMatch, auto.nextMatch);
     out.nextMatch = same
-      ? { ...base.nextMatch, ...pick(auto.nextMatch, ["home", "away", "kickoff", "competition", "round", "status", "score"]), venue: base.nextMatch.venue || auto.nextMatch.venue, referee: base.nextMatch.referee || auto.nextMatch.referee }
+      ? { ...base.nextMatch, ...pick(auto.nextMatch, ["home", "away", "homeCrest", "awayCrest", "kickoff", "competition", "round", "status", "score"]), venue: base.nextMatch.venue || auto.nextMatch.venue, referee: base.nextMatch.referee || auto.nextMatch.referee }
       : { ...auto.nextMatch };
     if (!same) { delete out.nextMatch.sofascoreId; out.lineup = null; }
   }

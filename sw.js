@@ -1,5 +1,5 @@
 // Service worker PSG Live : fonctionnement hors ligne et notifications.
-const CACHE = "psg-live-v1";
+const CACHE = "psg-live-v2";
 const BASE = new URL(self.registration.scope).pathname; // "/" sur Railway, "/actu-psg/" sur GitHub Pages
 const SHELL = ["", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/badge-96.png"].map((p) => BASE + p);
 

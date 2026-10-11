@@ -16,6 +16,7 @@ function cleanTeam(name) {
   }
   return n;
 }
+const crest = t => (typeof t?.crest === "string" && /^https:\/\//.test(t.crest) ? t.crest : null);
 const isPSG = n => /paris s(ain)?t?[- ]?g|^psg$/i.test(n || "");
 
 /* ---------------- football-data.org ---------------- */
@@ -36,6 +37,7 @@ function buildMatches(matches, now = Date.now()) {
   const list = (matches || []).map(m => ({
     raw: m,
     t: Date.parse(m.utcDate),
+    homeCrest: crest(m.homeTeam), awayCrest: crest(m.awayTeam),
     home: cleanTeam(m.homeTeam?.name),
     away: cleanTeam(m.awayTeam?.name),
     competition: competitionLabel(m),
@@ -68,6 +70,8 @@ function buildMatches(matches, now = Date.now()) {
       competition: COMP[cur.raw.competition?.code] || cur.raw.competition?.name || "",
       round: cur.raw.matchday ? `${cur.raw.matchday}e journée` : "",
       home: cur.home, away: cur.away,
+      ...(cur.homeCrest ? { homeCrest: cur.homeCrest } : {}),
+      ...(cur.awayCrest ? { awayCrest: cur.awayCrest } : {}),
       kickoff: new Date(cur.t).toISOString().replace(".000", ""),
       ...(cur.raw.venue ? { venue: cur.raw.venue } : {}),
       ...(ref?.name ? { referee: ref.name } : {}),
@@ -77,12 +81,15 @@ function buildMatches(matches, now = Date.now()) {
       events: [],
     };
   }
-  return { results, fixtures, nextMatch };
+  // Écusson de chaque équipe croisée, par nom affiché.
+  const crests = {};
+  for (const m of list) { if (m.homeCrest) crests[m.home] = m.homeCrest; if (m.awayCrest) crests[m.away] = m.awayCrest; }
+  return { results, fixtures, nextMatch, crests };
 }
 
 function buildStandings(j) {
   const table = (j.standings || []).find(s => s.type === "TOTAL")?.table || [];
-  return table.map(r => ({ rank: r.position, team: cleanTeam(r.team?.name), w: r.won, d: r.draw, l: r.lost, pts: r.points, played: r.playedGames }));
+  return table.map(r => ({ rank: r.position, team: cleanTeam(r.team?.name), ...(crest(r.team) ? { crest: crest(r.team) } : {}), w: r.won, d: r.draw, l: r.lost, pts: r.points, played: r.playedGames }));
 }
 
 /* ---------------- Flux RSS ---------------- */

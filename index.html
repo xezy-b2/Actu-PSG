@@ -47,7 +47,9 @@ a:hover{text-decoration:underline}
 
 /* Nav */
 .nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--glass);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--line)}
-.nav-in{max-width:1080px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.nav-in{max-width:1080px;margin:0 auto;padding:10px 16px;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:"brand seg sync bell";align-items:center;gap:10px 16px}
+.brand{grid-area:brand}.seg{grid-area:seg}.sync{grid-area:sync}#bell{grid-area:bell}
+@media (max-width:760px){.nav-in{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"brand sync bell" "seg seg seg";padding-block:8px 10px}.sync{justify-self:end}}
 .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:17px;letter-spacing:-.02em}
 .mark{width:26px;height:26px;border-radius:8px;background:var(--navy);position:relative;overflow:hidden;flex:none}
 .mark::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:6px;margin-left:-3px;background:var(--red);box-shadow:-5px 0 0 #fff,5px 0 0 #fff}
@@ -55,7 +57,7 @@ a:hover{text-decoration:underline}
 .seg::-webkit-scrollbar{display:none}
 .seg button{all:unset;cursor:pointer;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:500;color:var(--fg-2);white-space:nowrap}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.12)}
-.sync{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--fg-2);white-space:nowrap}
+.sync{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--fg-2);white-space:nowrap}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--win)}
 .dot.pulse{animation:pulse 1.6s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
@@ -79,11 +81,18 @@ h2{font-size:22px;font-weight:700;letter-spacing:-.025em}
 .pill.live{background:color-mix(in srgb,var(--red) 14%,transparent);color:var(--red)}
 .pill.live .dot{background:var(--red)}
 .pill.final{background:color-mix(in srgb,var(--fg) 8%,transparent);color:var(--fg)}
-.versus{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;margin:26px 0 22px}
+.versus{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);grid-template-areas:"home center away";align-items:center;gap:16px;margin:26px 0 22px}
+.versus .team.home{grid-area:home}.versus .team.away{grid-area:away}.versus .center{grid-area:center}
 .team{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;min-width:0}
 .crest{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:18px;letter-spacing:-.02em;color:#fff;background:var(--fg-3)}
+.crest.has-img{background:transparent;box-shadow:none;border-radius:0}
+.crest img{width:100%;height:100%;object-fit:contain;display:block}
+.mini{width:20px;height:20px;object-fit:contain;flex:none;vertical-align:-4px}
+.teams{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+.teams span{display:inline-flex;align-items:center;gap:6px;min-width:0}
+td .mini{margin-right:8px}
 .crest.psg{background:var(--navy);box-shadow:inset 0 0 0 4px color-mix(in srgb,var(--red) 70%,transparent)}
-.team-name{font-size:19px;font-weight:600;letter-spacing:-.02em}
+.team-name{font-size:19px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
 .center{text-align:center}
 .score{font-size:56px;font-weight:700;letter-spacing:-.04em;font-variant-numeric:tabular-nums;line-height:1}
 .kick{font-size:44px;font-weight:700;letter-spacing:-.04em;font-variant-numeric:tabular-nums;line-height:1}
@@ -211,6 +220,7 @@ footer{max-width:1080px;margin:0 auto;padding:0 16px 40px;color:var(--fg-3);font
 [data-sec]{scroll-margin-top:72px}
 body.filter-on [data-sec]:not(.show){display:none}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:600px){.hero{padding:22px 18px 20px}.versus{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"home away" "center center";row-gap:20px;margin:22px 0 18px}.crest{width:56px;height:56px;font-size:16px}.team-name{font-size:16px}.kick{font-size:40px}.score{font-size:48px}.count{gap:14px}.count b{font-size:20px}}
 </style>
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}body{margin:0}</style>
 </head>
@@ -288,6 +298,10 @@ body.filter-on [data-sec]:not(.show){display:none}
     return (w.length > 1 ? w.slice(0, 3).map(x => x[0]).join("") : (w[0] || "?").slice(0, 3)).toUpperCase();
   };
   let state = null, lastSnapshotAt = null;
+  const crestUrl = (name, direct) => { const u = direct || state?.crests?.[name]; return typeof u === "string" && /^https:\/\//.test(u) ? u : null; };
+  const bigCrest = (name, direct) => { const u = crestUrl(name, direct); return u ? `<div class="crest has-img"><img src="${esc(u)}" alt="" loading="lazy" onerror="this.parentNode.className='crest';this.parentNode.textContent='${esc(initials(name))}'"></div>` : `<div class="crest ${isPSG(name) ? "psg" : ""}">${esc(initials(name))}</div>`; };
+  const mini = name => { const u = crestUrl(name); return u ? `<img class="mini" src="${esc(u)}" alt="" loading="lazy" onerror="this.remove()">` : ""; };
+  const teams = (h, a) => `<div class="teams"><span>${mini(h)}${esc(short(h))}</span><span>–</span><span>${mini(a)}${esc(short(a))}</span></div>`;
 
   /* ---------- filter ---------- */
   const seg = $("seg");
@@ -338,9 +352,9 @@ body.filter-on [data-sec]:not(.show){display:none}
     const facts = [m.venue && `<span><b>${esc(m.venue)}</b></span>`, m.tv && `<span>TV <b>${esc(m.tv)}</b></span>`, m.referee && `<span>Arbitre <b>${esc(m.referee)}</b></span>`].filter(Boolean).join("");
     el.innerHTML = `<div class="hero-top"><div class="eyebrow">${esc(m.competition || "")}${m.round ? " · " + esc(m.round) : ""}</div>${pill}</div>
       <div class="versus">
-        <div class="team"><div class="crest ${isPSG(m.home) ? "psg" : ""}">${esc(initials(m.home))}</div><div class="team-name">${esc(m.home)}</div></div>
+        <div class="team home">${bigCrest(m.home, m.homeCrest)}<div class="team-name">${esc(m.home)}</div></div>
         <div class="center">${center}</div>
-        <div class="team"><div class="crest ${isPSG(m.away) ? "psg" : ""}">${esc(initials(m.away))}</div><div class="team-name">${esc(m.away)}</div></div>
+        <div class="team away">${bigCrest(m.away, m.awayCrest)}<div class="team-name">${esc(m.away)}</div></div>
       </div>${ev}${facts ? `<div class="facts">${facts}</div>` : ""}${probs}${liveBox(m, ph)}`;
     tick();
   }
@@ -382,20 +396,20 @@ body.filter-on [data-sec]:not(.show){display:none}
     const el = $("results");
     const form = R.slice(0, 5).reverse().map(r => `<span class="badge ${outcome(r)}" title="${esc(r.home)} ${r.hs}-${r.as} ${esc(r.away)}">${{W:"V",D:"N",L:"D"}[outcome(r)]}</span>`).join("");
     el.innerHTML = `<div class="tile-head"><h2>Derniers résultats</h2><div class="form" aria-label="Forme récente">${form}</div></div>` +
-      (R.length ? `<div class="list">${R.slice(0, 8).map(r => { const o = outcome(r); return `<div class="row"><span class="badge ${o}" aria-label="${{W:"Victoire",D:"Nul",L:"Défaite"}[o]}">${{W:"V",D:"N",L:"D"}[o]}</span><div class="grow"><div>${esc(short(r.home))} – ${esc(short(r.away))}</div><div class="sub">${esc(r.competition)} · ${esc(dShort(r.date))}</div></div><span class="res">${esc(r.hs)} – ${esc(r.as)}</span></div>`; }).join("")}</div>` : `<p class="empty">Pas encore de match joué.</p>`);
+      (R.length ? `<div class="list">${R.slice(0, 8).map(r => { const o = outcome(r); return `<div class="row"><span class="badge ${o}" aria-label="${{W:"Victoire",D:"Nul",L:"Défaite"}[o]}">${{W:"V",D:"N",L:"D"}[o]}</span><div class="grow">${teams(r.home, r.away)}<div class="sub">${esc(r.competition)} · ${esc(dShort(r.date))}</div></div><span class="res">${esc(r.hs)} – ${esc(r.as)}</span></div>`; }).join("")}</div>` : `<p class="empty">Pas encore de match joué.</p>`);
   }
   function renderFixtures() {
     const F = (state?.fixtures || []).slice().sort((a, b) => String(a.date).localeCompare(String(b.date)));
     const el = $("fixtures");
     el.innerHTML = `<div class="tile-head"><h2>Calendrier</h2><small>À venir</small></div>` + (F.length ? `<div class="list">${F.slice(0, 7).map(f => {
       const d = toDate(f.date); const hasTime = f.date && f.date.length > 10;
-      return `<div class="row"><span class="date">${d ? esc(fmt(d, {weekday:"short", day:"numeric", month:"short"})) : ""}</span><div class="grow"><div>${esc(short(f.home))} – ${esc(short(f.away))}</div><div class="sub">${esc(f.competition)}</div></div><span class="res" style="font-weight:500;color:var(--fg-2)">${hasTime && d ? esc(fmt(d, {hour:"2-digit", minute:"2-digit"})) : ""}</span></div>`; }).join("")}</div>` : `<p class="empty">Calendrier à venir.</p>`);
+      return `<div class="row"><span class="date">${d ? esc(fmt(d, {weekday:"short", day:"numeric", month:"short"})) : ""}</span><div class="grow">${teams(f.home, f.away)}<div class="sub">${esc(f.competition)}</div></div><span class="res" style="font-weight:500;color:var(--fg-2)">${hasTime && d ? esc(fmt(d, {hour:"2-digit", minute:"2-digit"})) : ""}</span></div>`; }).join("")}</div>` : `<p class="empty">Calendrier à venir.</p>`);
   }
 
   /* ---------- table ---------- */
   function renderTable() {
     const S = state?.standings || []; const el = $("table");
-    el.innerHTML = `<div class="tile-head"><h2>Ligue 1</h2><small>Classement</small></div>` + (S.length ? `<div class="tablewrap"><table><thead><tr><th>#</th><th>Club</th><th>J</th><th>V</th><th>N</th><th>D</th><th>Pts</th></tr></thead><tbody>${S.map(t => `<tr class="${isPSG(t.team) ? "me" : ""}"><td>${esc(t.rank)}</td><td>${esc(t.team)}</td><td>${esc(t.played ?? (t.w + t.d + t.l))}</td><td>${esc(t.w)}</td><td>${esc(t.d)}</td><td>${esc(t.l)}</td><td>${esc(t.pts)}</td></tr>`).join("")}</tbody></table></div>` : `<p class="empty">Classement indisponible.</p>`);
+    el.innerHTML = `<div class="tile-head"><h2>Ligue 1</h2><small>Classement</small></div>` + (S.length ? `<div class="tablewrap"><table><thead><tr><th>#</th><th>Club</th><th>J</th><th>V</th><th>N</th><th>D</th><th>Pts</th></tr></thead><tbody>${S.map(t => `<tr class="${isPSG(t.team) ? "me" : ""}"><td>${esc(t.rank)}</td><td>${t.crest && /^https:\/\//.test(t.crest) ? `<img class="mini" src="${esc(t.crest)}" alt="" loading="lazy" onerror="this.remove()">` : mini(t.team)}${esc(t.team)}</td><td>${esc(t.played ?? (t.w + t.d + t.l))}</td><td>${esc(t.w)}</td><td>${esc(t.d)}</td><td>${esc(t.l)}</td><td>${esc(t.pts)}</td></tr>`).join("")}</tbody></table></div>` : `<p class="empty">Classement indisponible.</p>`);
   }
 
   /* ---------- mercato ---------- */
