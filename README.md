@@ -7,7 +7,9 @@ Site de suivi non officiel de l'actualité du Paris Saint-Germain, installable c
 Le serveur Node.js (`server/`) tourne sur Railway et :
 
 - sert le site et l'appli installable (`index.html`, `manifest.webmanifest`, `sw.js`, `icons/`) ;
-- relit `data.json` sur GitHub toutes les 2 minutes (le fichier est mis à jour chaque heure par une tâche programmée Claude) ;
+- récupère tout seul, toutes les 10 minutes, les matchs du PSG, les résultats et le classement de Ligue 1 (football-data.org), ainsi que le fil d'actu (flux RSS de Foot Mercato et Google Actualités) ;
+- intègre le score en direct relevé par le veilleur, que le site relit toutes les 20 secondes pendant un match ;
+- complète avec le contenu rédigé de `data.json` (compo, infirmerie, mercato), relu sur GitHub toutes les 2 minutes ;
 - suit le match du PSG en direct et envoie des notifications : buts, coup d'envoi, mi-temps, score final, compo officielle ;
 - envoie une notification pour les nouvelles infos du fil d'actu (option désactivée par défaut) ;
 - garde les abonnements aux notifications dans MongoDB.
@@ -62,7 +64,7 @@ Le serveur essaie les sources dans cet ordre et garde la première qui répond :
 ## Vérifier que tout marche
 
 - `GET /healthz` : le serveur répond.
-- `GET /api/status` : état des notifications, nombre d'abonnés, dernière lecture de `data.json` et match suivi.
+- `GET /api/status` : état des notifications, nombre d'abonnés, données automatiques (matchs, classement, flux RSS), dernière lecture de `data.json` et match suivi.
 
 ## Développement
 

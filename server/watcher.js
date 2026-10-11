@@ -139,6 +139,8 @@ class Watcher {
     }
     this.status.source = this.provider.used || this.provider.name;
     this.status.live = { ...live, goals: live.goals.length };
+    this.lastLive = { fixture: { home: f.home, away: f.away, kickoff: new Date(f.kickoff).toISOString() }, live, at: Date.now() };
+    this.onLive?.();
     this.status.lastError = null;
     const { state: next, notifications } = diffLive(state, f, live);
     await this.store.setKV("match", next);

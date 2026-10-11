@@ -19,7 +19,8 @@ class DataSync {
     this.lastError = null;
     try { this.raw = fs.readFileSync(localFile, "utf8"); this.updatedAt = JSON.parse(this.raw).updatedAt; } catch (e) {}
   }
-  start() { this.sync(); this.timer = setInterval(() => this.sync(), this.intervalMs); this.timer.unref?.(); }
+  get base() { try { return JSON.parse(this.raw); } catch (e) { return {}; } }
+  start(onChange) { this.onChange = onChange; this.sync(); this.timer = setInterval(() => this.sync(), this.intervalMs); this.timer.unref?.(); }
   async sync() {
     try {
       const res = await fetch(this.url + "?t=" + Date.now(), { headers: this.etag ? { "If-None-Match": this.etag } : {}, signal: AbortSignal.timeout(15000) });
@@ -32,7 +33,7 @@ class DataSync {
       this.etag = res.headers.get("etag");
       this.updatedAt = json.updatedAt;
       this.lastError = null;
-      await this.checkNews(json.news || []);
+      this.onChange?.();
     } catch (e) {
       this.lastError = e.message;
       console.warn("[data]", e.message);
@@ -43,10 +44,12 @@ class DataSync {
     const seen = await this.store.getKV("newsSeen");
     const ids = news.map(n => n.id).filter(Boolean);
     if (!seen) return this.store.setKV("newsSeen", ids); // première fois : on mémorise sans notifier
-    const fresh = news.filter(n => n.id && !seen.includes(n.id));
-    if (!fresh.length) return;
+    // Seulement les infos récentes (moins de 3 h), pour éviter une rafale au redémarrage.
+    const fresh = news.filter(n => n.id && !seen.includes(n.id) && Date.now() - Date.parse(n.publishedAt) < 3 * 3600e3);
+    if (ids.every(id => seen.includes(id))) return;
     await this.store.setKV("newsSeen", [...new Set([...ids, ...seen])].slice(0, 200));
-    for (const n of fresh.slice(0, 3)) {
+    if (!fresh.length) return;
+    for (const n of fresh.slice(0, 2)) {
       await this.notify("news", { title: CATEGORY_TITLE[n.category] || "Actu PSG", body: n.title, tag: `news-${n.id}`, topic: "news", url: "/#news" }, { ttl: 6 * 3600 });
     }
   }

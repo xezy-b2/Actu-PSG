@@ -323,7 +323,7 @@ body.filter-on [data-sec]:not(.show){display:none}
     if (!m) return;
     const k = toDate(m.kickoff); const ph = matchPhase(m);
     const hasScore = m.score && m.score.home != null && m.score.away != null && (ph === "live" || ph === "final" || ph === "done");
-    const pill = ph === "live" ? `<span class="pill live"><span class="dot pulse"></span>En direct${m.minute ? " · " + esc(m.minute) + "'" : ""}</span>`
+    const pill = ph === "live" ? `<span class="pill live"><span class="dot pulse"></span>${m.minute === "MT" ? "Mi-temps" : "En direct" + (m.minute ? " · " + esc(m.minute) + "'" : "")}</span>`
       : ph === "final" ? `<span class="pill final">Terminé</span>`
       : ph === "done" ? `<span class="pill">Terminé · score en cours de mise à jour</span>`
       : `<span class="pill">${k ? esc(fmt(k, {weekday:"long", day:"numeric", month:"long"})) : "Date à confirmer"}</span>`;
@@ -451,8 +451,8 @@ body.filter-on [data-sec]:not(.show){display:none}
       document.querySelector("#sync .dot").classList.remove("pulse");
     }
   }
-  load();
-  setInterval(load, 60000);
+  // Toutes les 20 s pendant un match, sinon toutes les minutes.
+  (function loop() { load().finally(() => setTimeout(loop, state?.nextMatch?.status === "live" ? 20000 : 60000)); })();
   document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
 
   /* ---------- Appli installable et notifications ---------- */

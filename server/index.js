@@ -7,6 +7,8 @@ const { setupVapid, broadcast, sendOne } = require("./push");
 const { createProvider, fixtureFromData } = require("./providers");
 const { Watcher } = require("./watcher");
 const { DataSync } = require("./datasync");
+const { AutoData } = require("./autodata");
+const { mergeData } = require("./merge");
 
 const ROOT = path.join(__dirname, "..");
 const PORT = process.env.PORT || 3000;
@@ -53,19 +55,27 @@ async function main() {
   const notify = (pref, payload, opts) => (store && publicKey ? broadcast(store, pref, payload, opts) : Promise.resolve());
 
   const data = new DataSync({ url: process.env.DATA_URL, localFile: path.join(ROOT, "data.json"), store, notify });
-  data.start();
-
+  const auto = new AutoData({ key: process.env.FOOTBALL_DATA_KEY, teamId: Number(process.env.FOOTBALL_DATA_TEAM_ID) || 524 });
   let watcher = null;
+  // Données servies au site, recalculées à chaque changement d'une des trois sources.
+  let served = null;
+  const rebuild = () => { served = JSON.stringify(mergeData(data.base, auto.data, watcher?.lastLive)); };
+  const onChange = async () => { rebuild(); try { await data.checkNews(JSON.parse(served).news || []); } catch (e) { console.warn("[news]", e.message); } };
+  data.start(onChange);
+  auto.start(onChange);
+
   if (process.env.WATCHER_DISABLED !== "1") {
-    const getFixture = () => { try { return fixtureFromData(JSON.parse(data.raw)); } catch (e) { return null; } };
+    const getFixture = () => { try { if (!served) rebuild(); return fixtureFromData(JSON.parse(served)); } catch (e) { return null; } };
     watcher = new Watcher({ store: store || new (require("./store").MemoryStore)(), provider: createProvider(), notify, getFixture, pollSeconds: Number(process.env.POLL_SECONDS) || undefined });
+    watcher.onLive = rebuild;
     watcher.start();
   }
 
   /* ---------- Données ---------- */
   app.get("/data.json", (req, res) => {
     res.set("Cache-Control", "no-cache");
-    res.type("application/json").send(data.raw || fs.readFileSync(path.join(ROOT, "data.json"), "utf8"));
+    if (!served) rebuild();
+    res.type("application/json").send(served);
   });
 
   /* ---------- Notifications ---------- */
@@ -112,6 +122,7 @@ async function main() {
     res.json({
       push: { enabled: !!publicKey, store: store?.kind || null, subscribers: store ? await store.countSubscriptions().catch(() => null) : null },
       data: { source: data.url, lastSync: data.lastSync, updatedAt: data.updatedAt, error: data.lastError },
+      auto: auto.status,
       watcher: watcher ? watcher.status : "désactivé",
     });
   });
@@ -121,7 +132,7 @@ async function main() {
   app.get("/api/sources/check", rateLimit(3, 60e3), async (req, res) => {
     if (lastProbe && Date.now() - lastProbe.at < 60e3) return res.json(lastProbe.result);
     let d = {};
-    try { d = JSON.parse(data.raw); } catch (e) {}
+    try { if (!served) rebuild(); d = JSON.parse(served); } catch (e) {}
     const r = (d.results || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)))[0];
     if (!r) return res.status(404).json({ error: "Aucun match joué dans data.json" });
     const fixture = { id: "probe", kickoff: Date.parse(r.date + "T19:00:00Z"), home: r.home, away: r.away, refs: {} };
