@@ -59,3 +59,49 @@ test("PSG à l'extérieur : défaite bien libellée", () => {
   assert.equal(r.notifications.at(-1).payload.title, "Fin du match · Défaite du PSG");
   assert.equal(r.notifications[0].payload.title, "But de Manchester City");
 });
+
+const { Watcher } = require("./watcher");
+const { MemoryStore } = require("./store");
+const { ProviderChain, Espn, fixtureFromData } = require("./providers");
+
+test("le veilleur suit le match de data.json et bascule de source en cas d'échec", async () => {
+  const kickoff = new Date(Date.now() - 20 * 60e3).toISOString();
+  const data = { nextMatch: { home: "Paris Saint-Germain", away: "Le Mans FC", kickoff, sofascoreId: 1 } };
+  let score = 0;
+  const broken = { name: "sofascore", live: async () => { throw new Error("403 Forbidden"); } };
+  const ok = { name: "espn", live: async () => ({ status: "LIVE", minute: 20, homeGoals: score, awayGoals: 0, goals: score ? [{ side: "home", player: "Doué", minute: "19", detail: "" }] : [], lineup: null }) };
+  const sent = [];
+  const w = new Watcher({ store: new MemoryStore(), provider: new ProviderChain([broken, ok]), notify: async (pref, p) => sent.push(p.title), getFixture: () => fixtureFromData(data) });
+  await w.tick(); w.stop();            // calage en plein match, sans notification
+  assert.equal(sent.length, 0);
+  assert.equal(w.status.source, "espn");
+  score = 1;
+  await w.tick(); w.stop();
+  assert.deepEqual(sent, ["But du PSG !"]);
+  assert.equal(w.status.sources.sofascore.ok, false);
+});
+
+test("toutes les sources en panne : nouvel essai rapide, pas de sommeil de 6 h", async () => {
+  const data = { nextMatch: { home: "Paris Saint-Germain", away: "Le Mans FC", kickoff: new Date(Date.now() - 5 * 60e3).toISOString() } };
+  const w = new Watcher({ store: new MemoryStore(), provider: new ProviderChain([{ name: "x", live: async () => { throw new Error("down"); } }]), notify: async () => {}, getFixture: () => fixtureFromData(data) });
+  await w.tick(); w.stop();
+  assert.match(w.status.lastError, /down/);
+  assert.ok(new Date(w.status.nextCheck) - Date.now() <= 61e3);
+});
+
+test("lecture du format ESPN", async () => {
+  const espn = new Espn();
+  espn.findEvent = async () => ({ league: "fra.1", ev: { competitions: [{
+    status: { displayClock: "67'", type: { name: "STATUS_SECOND_HALF", state: "in" } },
+    competitors: [{ homeAway: "home", score: "2", team: { id: "160", displayName: "Paris Saint-Germain" } }, { homeAway: "away", score: "1", team: { id: "2697", displayName: "Le Mans" } }],
+    details: [
+      { scoringPlay: true, clock: { displayValue: "12'" }, team: { id: "160" }, athletesInvolved: [{ displayName: "Désiré Doué" }] },
+      { scoringPlay: false, clock: { displayValue: "30'" }, team: { id: "2697" }, yellowCard: true },
+      { scoringPlay: true, penaltyKick: true, clock: { displayValue: "45'+2'" }, team: { id: "2697" }, athletesInvolved: [{ displayName: "H. Diallo" }] },
+      { scoringPlay: true, clock: { displayValue: "61'" }, team: { id: "160" }, athletesInvolved: [{ displayName: "Ousmane Dembélé" }] },
+    ] }] } });
+  const r = await espn.live({ kickoff: Date.now(), refs: {} });
+  assert.equal(r.status, "LIVE"); assert.equal(r.minute, 67);
+  assert.deepEqual([r.homeGoals, r.awayGoals], [2, 1]);
+  assert.deepEqual(r.goals.map(g => `${g.side} ${g.player} ${g.minute} ${g.detail}`), ["home Désiré Doué 12 ", "away H. Diallo 45+2 pen", "home Ousmane Dembélé 61 "]);
+});

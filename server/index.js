@@ -4,7 +4,7 @@ const fs = require("fs");
 const express = require("express");
 const { createStore } = require("./store");
 const { setupVapid, broadcast, sendOne } = require("./push");
-const { createProvider } = require("./providers");
+const { createProvider, fixtureFromData } = require("./providers");
 const { Watcher } = require("./watcher");
 const { DataSync } = require("./datasync");
 
@@ -57,7 +57,8 @@ async function main() {
 
   let watcher = null;
   if (process.env.WATCHER_DISABLED !== "1") {
-    watcher = new Watcher({ store: store || new (require("./store").MemoryStore)(), provider: createProvider(), notify, pollSeconds: Number(process.env.POLL_SECONDS) || undefined });
+    const getFixture = () => { try { return fixtureFromData(JSON.parse(data.raw)); } catch (e) { return null; } };
+    watcher = new Watcher({ store: store || new (require("./store").MemoryStore)(), provider: createProvider(), notify, getFixture, pollSeconds: Number(process.env.POLL_SECONDS) || undefined });
     watcher.start();
   }
 

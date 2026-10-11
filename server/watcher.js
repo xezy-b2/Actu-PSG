@@ -85,14 +85,14 @@ function diffLive(state, fixture, live) {
 }
 
 class Watcher {
-  constructor({ store, provider, notify, pollSeconds }) {
+  constructor({ store, provider, notify, getFixture, pollSeconds }) {
     this.store = store;
     this.provider = provider;
     this.notify = notify;
-    this.poll = (pollSeconds || provider.defaultPollSeconds) * 1000;
+    this.getFixture = getFixture;
+    this.poll = (pollSeconds || 30) * 1000;
     this.fixture = null;
-    this.nextRefresh = 0;
-    this.status = { provider: provider.name, lastCheck: null, lastError: null, fixture: null, live: null };
+    this.status = { sourcesOrder: provider.name, lastCheck: null, lastError: null, fixture: null, live: null };
     this.timer = null;
   }
   start() { this.schedule(2000); }
@@ -105,35 +105,48 @@ class Watcher {
   async tick() {
     const now = Date.now();
     this.status.lastCheck = new Date(now).toISOString();
-    if (!this.fixture || now >= this.nextRefresh) {
-      this.fixture = await this.provider.currentOrNext();
-      this.nextRefresh = now + 6 * 3600e3;
-      this.status.fixture = this.fixture;
-      console.log("[watcher] Match suivi :", this.fixture ? `${this.fixture.home} – ${this.fixture.away} (${new Date(this.fixture.kickoff).toISOString()})` : "aucun");
+    // Le match à suivre vient de data.json (relu toutes les 2 min). On garde les
+    // identifiants déjà trouvés par les sources tant que c'est le même match.
+    const fromData = this.getFixture();
+    if (fromData && (!this.fixture || this.fixture.id !== fromData.id)) {
+      this.fixture = fromData;
+      console.log("[watcher] Match suivi :", `${fromData.home} – ${fromData.away} (${new Date(fromData.kickoff).toISOString()})`);
+    } else if (fromData) {
+      this.fixture.refs = { ...fromData.refs, ...this.fixture.refs, ...(fromData.refs.sofascore ? { sofascore: fromData.refs.sofascore } : {}) };
     }
     const f = this.fixture;
-    if (!f || f.status === "OFF") return this.schedule(6 * 3600e3);
+    this.status.fixture = f && { home: f.home, away: f.away, kickoff: new Date(f.kickoff).toISOString() };
+    if (this.provider.health) this.status.sources = this.provider.health;
+    if (!f) { this.status.lastError = "Aucun match avec une heure de coup d'envoi dans data.json"; return this.schedule(5 * 60e3); }
 
     let state = await this.store.getKV("match");
     if (!state || state.fixtureId !== f.id) { state = newState(f); await this.store.setKV("match", state); }
 
     const untilKick = f.kickoff - now;
-    if (state.sent.ft || now > f.kickoff + 4 * 3600e3) {
-      this.nextRefresh = 0; // match terminé : on passe au suivant
-      return this.schedule(Math.max(60e3, Math.min(30 * 60e3, f.kickoff + 3 * 3600e3 - now)));
-    }
-    if (untilKick > 75 * 60e3) return this.schedule(Math.min(untilKick - 75 * 60e3, this.nextRefresh - now, 6 * 3600e3));
+    // Match fini (ou trop ancien) : on attend que data.json passe au match suivant.
+    if (state.sent.ft || now > f.kickoff + 4 * 3600e3) return this.schedule(5 * 60e3);
+    // Avant le match : on se réveille 75 min avant (compo), en relisant data.json au moins toutes les 10 min.
+    if (untilKick > 75 * 60e3) return this.schedule(Math.min(untilKick - 75 * 60e3, 10 * 60e3));
 
-    const live = await this.provider.live(f);
+    let live;
+    try {
+      live = await this.provider.live(f);
+    } catch (e) {
+      // Pendant le match, on réessaie vite au lieu de s'endormir.
+      this.status.lastError = e.message;
+      console.warn("[watcher]", e.message);
+      return this.schedule(Math.max(this.poll, 60e3));
+    }
+    this.status.source = this.provider.used || this.provider.name;
     this.status.live = { ...live, goals: live.goals.length };
     this.status.lastError = null;
     const { state: next, notifications } = diffLive(state, f, live);
     await this.store.setKV("match", next);
     for (const n of notifications) await this.notify(n.pref, { ...n.payload, url: "/" }, { urgency: n.pref === "goals" ? "high" : "normal", ttl: n.pref === "goals" ? 900 : 3600 });
 
-    if (next.sent.ft) { this.nextRefresh = Date.now() + 30 * 60e3; return this.schedule(30 * 60e3); }
+    if (next.sent.ft) return this.schedule(5 * 60e3);
     if (live.status === "NS" && untilKick > 2 * 60e3) return this.schedule(next.sent.lineup ? Math.max(60e3, untilKick - 60e3) : Math.min(10 * 60e3, Math.max(60e3, untilKick - 60e3)));
-    return this.schedule(this.poll);
+    return this.schedule(this.provider.used === "api-football" ? Math.max(this.poll, 120e3) : this.poll);
   }
 }
 
