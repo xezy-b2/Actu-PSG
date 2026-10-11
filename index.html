@@ -342,7 +342,7 @@ body.filter-on [data-sec]:not(.show){display:none}
       : ph === "done" ? `<span class="pill">Terminé · score en cours de mise à jour</span>`
       : `<span class="pill">${k ? esc(fmt(k, {weekday:"long", day:"numeric", month:"long"})) : "Date à confirmer"}</span>`;
     let center;
-    if (hasScore) center = `<div class="score">${esc(m.score.home)} – ${esc(m.score.away)}</div><small>${ph === "live" ? "Score en direct" : "Score final"}</small>`;
+    if (hasScore) center = `<div class="score">${esc(m.score.home)} – ${esc(m.score.away)}</div><small>${ph === "live" ? "Score en direct · actualisé toutes les 20 s" : "Score final"}</small>`;
     else if (ph === "scheduled" && k) center = `<div class="kick">${esc(fmt(k, {hour:"2-digit", minute:"2-digit"}))}</div><div class="count" id="count"></div>`;
     else center = `<div class="kick">–</div>`;
     const p = m.probs;
@@ -355,7 +355,7 @@ body.filter-on [data-sec]:not(.show){display:none}
         <div class="team home">${bigCrest(m.home, m.homeCrest)}<div class="team-name">${esc(m.home)}</div></div>
         <div class="center">${center}</div>
         <div class="team away">${bigCrest(m.away, m.awayCrest)}<div class="team-name">${esc(m.away)}</div></div>
-      </div>${ev}${facts ? `<div class="facts">${facts}</div>` : ""}${probs}${liveBox(m, ph)}`;
+      </div>${ev}${facts ? `<div class="facts">${facts}</div>` : ""}${probs}`;
     tick();
   }
   function tick() {
