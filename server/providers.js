@@ -95,7 +95,10 @@ class ApiFootball {
     if (!id) {
       for (const day of matchDays(fixture.kickoff)) {
         const date = day.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3");
-        const j = await this.get(`/fixtures?date=${date}&team=${this.teamId}&timezone=UTC`);
+        // Saison européenne : 2026 = saison 2026-2027 (de juillet à juin).
+        const d = new Date(fixture.kickoff);
+        const season = d.getUTCMonth() >= 6 ? d.getUTCFullYear() : d.getUTCFullYear() - 1;
+        const j = await this.get(`/fixtures?date=${date}&team=${this.teamId}&season=${season}&timezone=UTC`);
         if (j.response?.[0]) { id = j.response[0].fixture.id; break; }
       }
       if (!id) throw new Error("match introuvable");
