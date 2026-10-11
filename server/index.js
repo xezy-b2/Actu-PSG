@@ -116,6 +116,31 @@ async function main() {
     });
   });
 
+  // Teste chaque source de score sur le dernier match joué (sans rien notifier).
+  let lastProbe = null;
+  app.get("/api/sources/check", rateLimit(3, 60e3), async (req, res) => {
+    if (lastProbe && Date.now() - lastProbe.at < 60e3) return res.json(lastProbe.result);
+    let d = {};
+    try { d = JSON.parse(data.raw); } catch (e) {}
+    const r = (d.results || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)))[0];
+    if (!r) return res.status(404).json({ error: "Aucun match joué dans data.json" });
+    const fixture = { id: "probe", kickoff: Date.parse(r.date + "T19:00:00Z"), home: r.home, away: r.away, refs: {} };
+    const { Espn, Sofascore, ApiFootball } = require("./providers");
+    const list = [new Espn(), new Sofascore(), ...(process.env.API_FOOTBALL_KEY ? [new ApiFootball(process.env.API_FOOTBALL_KEY)] : [])];
+    const result = { match: `${r.home} ${r.hs}-${r.as} ${r.away} (${r.date})`, sources: {} };
+    for (const p of list) {
+      const t0 = Date.now();
+      try {
+        let out;
+        if (p.name === "sofascore") { const j = await p.get("/team/1644/events/last/0"); out = { reachable: true, events: (j.events || []).length }; }
+        else { const l = await p.live({ ...fixture, refs: {} }); out = { status: l.status, score: `${l.homeGoals}-${l.awayGoals}`, scorers: l.goals.map(g => `${g.player} ${g.minute}'`) }; }
+        result.sources[p.name] = { ok: true, ms: Date.now() - t0, ...out };
+      } catch (e) { result.sources[p.name] = { ok: false, ms: Date.now() - t0, error: e.message }; }
+    }
+    lastProbe = { at: Date.now(), result };
+    res.json(result);
+  });
+
   /* ---------- Fichiers du site ---------- */
   const files = { "/": "index.html", "/index.html": "index.html", "/manifest.webmanifest": "manifest.webmanifest", "/sw.js": "sw.js" };
   for (const [route, file] of Object.entries(files)) {
