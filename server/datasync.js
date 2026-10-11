@@ -56,14 +56,10 @@ class DataSync {
     // Infos déjà notifiées ces dernières 24 h : une même info reprise par plusieurs médias ne part qu'une fois.
     const now = Date.now();
     const sent = ((await this.store.getKV("newsNotified")) || []).filter(x => now - x.at < 24 * 3600e3);
-    const lastHour = sent.filter(x => now - x.at < 3600e3).length;
-    let budget = Math.max(0, 3 - lastHour); // 3 notifications d'actu par heure au maximum
     let changed = false;
     for (const n of fresh) {
       if (sent.some(x => sameStory(x.title, n.title))) continue;
-      sent.push({ title: n.title, at: now }); changed = true; // mémorisée même hors budget : pas d'envoi en retard
-      if (budget <= 0) continue;
-      budget--;
+      sent.push({ title: n.title, at: now }); changed = true;
       await this.notify("news", { title: CATEGORY_TITLE[n.category] || "Actu PSG", body: n.title, tag: `news-${n.id}`, topic: "news", url: "/#news" }, { ttl: 6 * 3600 });
     }
     if (changed) await this.store.setKV("newsNotified", sent.slice(-200));
