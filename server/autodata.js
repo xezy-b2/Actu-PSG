@@ -8,7 +8,12 @@ const COMP = { FL1: "Ligue 1", CL: "Ligue des champions", FRCH: "Trophée des ch
 // "Paris Saint-Germain FC" → "Paris Saint-Germain", "Stade Rennais FC 1901" → "Stade Rennais"
 function cleanTeam(name) {
   let n = String(name || "").trim();
-  for (let i = 0; i < 3; i++) n = n.replace(/\s+(FC|AFC|CF|SC|AC|\d{4})$/i, "");
+  for (let i = 0; i < 3; i++) {
+    const shorter = n.replace(/\s+(FC|AFC|CF|SC|AC|\d{4})$/i, "");
+    // On garde le suffixe s'il ne resterait qu'un nom de ville court ("Paris FC").
+    if (shorter === n || (!/\s/.test(shorter) && shorter.length < 6)) break;
+    n = shorter;
+  }
   return n;
 }
 const isPSG = n => /paris s(ain)?t?[- ]?g|^psg$/i.test(n || "");

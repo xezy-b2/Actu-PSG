@@ -33,6 +33,9 @@ test("noms d'équipes nettoyés", () => {
   assert.equal(cleanTeam("Stade Rennais FC 1901"), "Stade Rennais");
   assert.equal(cleanTeam("Paris Saint-Germain FC"), "Paris Saint-Germain");
   assert.equal(cleanTeam("FC Lorient"), "FC Lorient");
+  assert.equal(cleanTeam("Paris FC"), "Paris FC");
+  assert.equal(cleanTeam("Le Havre AC"), "Le Havre");
+  assert.equal(cleanTeam("Toulouse FC"), "Toulouse");
 });
 
 test("classement", () => {
