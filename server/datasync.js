@@ -1,6 +1,7 @@
 // Relit data.json sur GitHub (mis à jour chaque heure par la tâche programmée)
 // et prévient les abonnés "actu" des nouveaux articles.
 const fs = require("fs");
+const { sameStory } = require("./stories");
 
 const DEFAULT_URL = "https://raw.githubusercontent.com/xezy-b2/actu-psg/main/data.json";
 const CATEGORY_TITLE = { mercato: "Mercato", compo: "Compo", infirmerie: "Infirmerie", match: "Match", europe: "Europe", club: "Actu PSG" };
@@ -44,15 +45,30 @@ class DataSync {
     const seen = await this.store.getKV("newsSeen");
     const ids = news.map(n => n.id).filter(Boolean);
     if (!seen) return this.store.setKV("newsSeen", ids); // première fois : on mémorise sans notifier
-    // Seulement les infos récentes (moins de 3 h), pour éviter une rafale au redémarrage.
-    const fresh = news.filter(n => n.id && !seen.includes(n.id) && Date.now() - Date.parse(n.publishedAt) < 3 * 3600e3);
     if (ids.every(id => seen.includes(id))) return;
-    await this.store.setKV("newsSeen", [...new Set([...ids, ...seen])].slice(0, 200));
+    await this.store.setKV("newsSeen", [...new Set([...ids, ...seen])].slice(0, 300));
+
+    // Seulement les infos récentes (moins de 3 h), pour éviter une rafale au redémarrage.
+    const fresh = news.filter(n => n.id && !seen.includes(n.id) && Date.now() - Date.parse(n.publishedAt) < 3 * 3600e3)
+      .sort((a, b) => String(a.publishedAt).localeCompare(String(b.publishedAt)));
     if (!fresh.length) return;
-    for (const n of fresh.slice(0, 2)) {
+
+    // Infos déjà notifiées ces dernières 24 h : une même info reprise par plusieurs médias ne part qu'une fois.
+    const now = Date.now();
+    const sent = ((await this.store.getKV("newsNotified")) || []).filter(x => now - x.at < 24 * 3600e3);
+    const lastHour = sent.filter(x => now - x.at < 3600e3).length;
+    let budget = Math.max(0, 3 - lastHour); // 3 notifications d'actu par heure au maximum
+    let changed = false;
+    for (const n of fresh) {
+      if (sent.some(x => sameStory(x.title, n.title))) continue;
+      sent.push({ title: n.title, at: now }); changed = true; // mémorisée même hors budget : pas d'envoi en retard
+      if (budget <= 0) continue;
+      budget--;
       await this.notify("news", { title: CATEGORY_TITLE[n.category] || "Actu PSG", body: n.title, tag: `news-${n.id}`, topic: "news", url: "/#news" }, { ttl: 6 * 3600 });
     }
+    if (changed) await this.store.setKV("newsNotified", sent.slice(-200));
   }
+
 }
 
 module.exports = { DataSync };

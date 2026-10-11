@@ -1,3 +1,4 @@
+const { sameStory } = require("./stories");
 // Assemble les données servies au site :
 //  - base : data.json du dépôt (contenu rédigé : compo, infirmerie, mercato, actu détaillée) ;
 //  - auto : données récupérées par le serveur (matchs, classement, fil RSS) ;
@@ -46,9 +47,13 @@ function mergeData(base = {}, auto = {}, live = null, now = Date.now()) {
   }
 
   // Fil d'actu : articles rédigés + titres RSS, sans doublons, du plus récent au plus ancien.
-  const seen = new Set();
-  out.news = [...(base.news || []), ...(auto.news || [])]
+  // Une même info reprise par plusieurs médias n'apparaît qu'une fois (on garde l'article rédigé s'il existe).
+  const seen = new Set(), kept = [];
+  const all = [...(base.news || []).map(n => ({ ...n, _ed: 1 })), ...(auto.news || [])]
     .filter(n => n && n.title && !seen.has(n.url || n.id) && seen.add(n.url || n.id))
+    .sort((a, b) => (b._ed || 0) - (a._ed || 0) || String(b.publishedAt).localeCompare(String(a.publishedAt)));
+  for (const n of all) if (!kept.some(k => sameStory(k.title, n.title))) kept.push(n);
+  out.news = kept.map(({ _ed, ...n }) => n)
     .sort((a, b) => String(b.publishedAt).localeCompare(String(a.publishedAt)))
     .slice(0, 30);
 
