@@ -23,7 +23,8 @@ Sans serveur (GitHub Pages), le site fonctionne toujours, mais sans notification
 |---|---|---|
 | `MONGODB_URI` | Oui | Chaîne de connexion MongoDB Atlas (`mongodb+srv://…`) |
 | `VAPID_SUBJECT` | Oui | Votre adresse de contact, au format `mailto:vous@exemple.fr` |
-| `API_FOOTBALL_KEY` | Conseillé | Clé gratuite API-Football pour le score en direct ([dashboard.api-football.com](https://dashboard.api-football.com)) |
+| `FOOTBALL_DATA_KEY` | Conseillé | Clé gratuite [football-data.org](https://www.football-data.org/client/register), source de secours pour le score et la compo |
+| `API_FOOTBALL_KEY` | Non | Clé API-Football (l'offre gratuite ne couvre pas la saison en cours) |
 | `MONGODB_DB` | Non | Nom de la base (par défaut `actu_psg`) |
 | `POLL_SECONDS` | Non | Intervalle de vérification pendant un match (120 s avec API-Football, 30 s avec Sofascore) |
 | `DATA_URL` | Non | Adresse de `data.json` (par défaut le fichier de ce dépôt sur GitHub) |
@@ -44,8 +45,14 @@ Railway n'a pas d'adresse IP fixe par défaut. Deux options :
 
 ## Source du score en direct
 
-- **API-Football** (si `API_FOOTBALL_KEY` est défini) : source officielle. L'offre gratuite permet 100 requêtes par jour, d'où une vérification toutes les 2 minutes pendant les matchs.
-- **Sofascore** (par défaut, sans clé) : plus rapide (30 s), mais l'API n'est pas officielle et peut bloquer les accès sans prévenir.
+Le serveur essaie les sources dans cet ordre et garde la première qui répond :
+
+1. **ESPN** (sans clé) : score et buteurs. Source principale.
+2. **football-data.org** (si `FOOTBALL_DATA_KEY` est défini) : score, buteurs et compo.
+3. **Sofascore** (sans clé) : bloque en pratique les serveurs (erreur 403).
+4. **API-Football** (si `API_FOOTBALL_KEY` est défini) : l'offre gratuite ne couvre pas la saison en cours.
+
+`GET /api/sources/check` teste chaque source sur le dernier match joué, sans envoyer de notification.
 
 ## Installer l'appli
 

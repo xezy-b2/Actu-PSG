@@ -105,3 +105,18 @@ test("lecture du format ESPN", async () => {
   assert.deepEqual([r.homeGoals, r.awayGoals], [2, 1]);
   assert.deepEqual(r.goals.map(g => `${g.side} ${g.player} ${g.minute} ${g.detail}`), ["home Désiré Doué 12 ", "away H. Diallo 45+2 pen", "home Ousmane Dembélé 61 "]);
 });
+
+test("lecture du format football-data.org", async () => {
+  const { FootballData } = require("./providers");
+  const fd = new FootballData("k");
+  fd.get = async (path) => path.startsWith("/teams")
+    ? { matches: [{ id: 99, utcDate: "2026-10-14T19:00:00Z" }] }
+    : { id: 99, status: "IN_PLAY", minute: "52", homeTeam: { id: 65, name: "Manchester City FC" }, awayTeam: { id: 524, name: "Paris Saint-Germain FC", formation: "4-3-3", lineup: Array.from({ length: 11 }, (_, i) => ({ name: "J" + i })) },
+        score: { fullTime: { home: 1, away: 2 } },
+        goals: [{ minute: 10, team: { id: 524 }, scorer: { name: "Dembélé" }, type: "REGULAR" }, { minute: 45, injuryTime: 1, team: { id: 65 }, scorer: { name: "Haaland" }, type: "PENALTY" }, { minute: 50, team: { id: 65 }, scorer: { name: "Dias" }, type: "OWN" }] };
+  const r = await fd.live({ kickoff: Date.parse("2026-10-14T19:00:00Z"), refs: {} });
+  assert.equal(r.status, "LIVE"); assert.equal(r.minute, 52);
+  assert.deepEqual([r.homeGoals, r.awayGoals], [1, 2]);
+  assert.deepEqual(r.goals.map(g => `${g.side} ${g.player} ${g.minute} ${g.detail}`), ["away Dembélé 10 ", "home Haaland 45+1 pen", "home Dias 50 csc"]);
+  assert.equal(r.lineup.players.length, 11);
+});

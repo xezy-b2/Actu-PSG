@@ -171,6 +171,59 @@ class Sofascore {
   }
 }
 
+/* ---------------- football-data.org (clé gratuite, saison en cours incluse) ---------------- */
+class FootballData {
+  constructor(key, teamId = 524) {
+    this.name = "football-data";
+    this.key = key;
+    this.teamId = Number(teamId);
+    this.base = "https://api.football-data.org/v4";
+  }
+  async get(path) {
+    const j = await getJSON(this.base + path, { "X-Auth-Token": this.key });
+    if (j.errorCode || (j.message && !j.matches && !j.id)) throw new Error(j.message || `erreur ${j.errorCode}`);
+    return j;
+  }
+  static status(st) {
+    if (["SCHEDULED", "TIMED"].includes(st)) return "NS";
+    if (st === "PAUSED") return "HT";
+    if (["IN_PLAY", "LIVE"].includes(st)) return "LIVE";
+    if (st === "FINISHED" || st === "AWARDED") return "FT";
+    return "OFF";
+  }
+  async live(fixture) {
+    let id = fixture.refs?.footballData;
+    if (!id) {
+      const days = matchDays(fixture.kickoff).map(d => d.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3"));
+      const j = await this.get(`/teams/${this.teamId}/matches?dateFrom=${days[0]}&dateTo=${days[days.length - 1]}`);
+      const m = (j.matches || []).sort((a, b) => Math.abs(Date.parse(a.utcDate) - fixture.kickoff) - Math.abs(Date.parse(b.utcDate) - fixture.kickoff))[0];
+      if (!m) throw new Error("match introuvable");
+      id = m.id;
+      fixture.refs = { ...fixture.refs, footballData: id };
+    }
+    const m = await this.get(`/matches/${id}`);
+    const homeId = m.homeTeam?.id;
+    const goals = (m.goals || []).map(g => ({
+      minute: g.injuryTime ? `${g.minute}+${g.injuryTime}` : String(g.minute ?? ""),
+      side: g.team?.id === homeId ? "home" : "away",
+      player: g.scorer?.name || "",
+      detail: g.type === "OWN" ? "csc" : g.type === "PENALTY" ? "pen" : "",
+    }));
+    const mine = m.homeTeam?.id === this.teamId ? m.homeTeam : m.awayTeam?.id === this.teamId ? m.awayTeam : null;
+    const xi = (mine?.lineup || []).map(p => p.name).filter(Boolean);
+    const status = FootballData.status(m.status);
+    const full = m.score?.fullTime || {};
+    return {
+      status,
+      minute: status === "LIVE" && m.minute ? Number(String(m.minute).replace(/\D.*/, "")) || null : null,
+      homeGoals: full.home ?? 0,
+      awayGoals: full.away ?? 0,
+      goals,
+      lineup: xi.length >= 11 ? { formation: mine.formation || "", players: xi } : null,
+    };
+  }
+}
+
 /* ---------------- Chaîne : la première source qui répond l'emporte ---------------- */
 class ProviderChain {
   constructor(providers) {
@@ -199,7 +252,9 @@ class ProviderChain {
 
 function createProvider() {
   // API-Football en dernier : l'offre gratuite est limitée à 100 requêtes par jour.
-  const list = [new Espn(), new Sofascore()];
+  const list = [new Espn()];
+  if (process.env.FOOTBALL_DATA_KEY) list.push(new FootballData(process.env.FOOTBALL_DATA_KEY, process.env.FOOTBALL_DATA_TEAM_ID || 524));
+  list.push(new Sofascore());
   if (process.env.API_FOOTBALL_KEY) list.push(new ApiFootball(process.env.API_FOOTBALL_KEY, process.env.API_FOOTBALL_TEAM_ID || 85));
   return new ProviderChain(list);
 }
@@ -216,4 +271,4 @@ function fixtureFromData(data) {
   };
 }
 
-module.exports = { createProvider, fixtureFromData, ProviderChain, Espn, ApiFootball, Sofascore };
+module.exports = { createProvider, fixtureFromData, ProviderChain, Espn, FootballData, ApiFootball, Sofascore };

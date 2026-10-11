@@ -125,8 +125,8 @@ async function main() {
     const r = (d.results || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)))[0];
     if (!r) return res.status(404).json({ error: "Aucun match joué dans data.json" });
     const fixture = { id: "probe", kickoff: Date.parse(r.date + "T19:00:00Z"), home: r.home, away: r.away, refs: {} };
-    const { Espn, Sofascore, ApiFootball } = require("./providers");
-    const list = [new Espn(), new Sofascore(), ...(process.env.API_FOOTBALL_KEY ? [new ApiFootball(process.env.API_FOOTBALL_KEY)] : [])];
+    const { Espn, FootballData, Sofascore, ApiFootball } = require("./providers");
+    const list = [new Espn(), ...(process.env.FOOTBALL_DATA_KEY ? [new FootballData(process.env.FOOTBALL_DATA_KEY)] : []), new Sofascore(), ...(process.env.API_FOOTBALL_KEY ? [new ApiFootball(process.env.API_FOOTBALL_KEY)] : [])];
     const result = { match: `${r.home} ${r.hs}-${r.as} ${r.away} (${r.date})`, sources: {} };
     for (const p of list) {
       const t0 = Date.now();
