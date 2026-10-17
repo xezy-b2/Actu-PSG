@@ -188,7 +188,7 @@ a.card:hover{text-decoration:none;transform:translateY(-2px)}
 .sheet-score{display:flex;align-items:center;gap:12px;font-size:20px;font-weight:700;letter-spacing:-.02em;flex-wrap:wrap}
 .sheet-score .n{font-variant-numeric:tabular-nums;font-size:26px}
 .sheet-score .mini{width:24px;height:24px}
-.sheet-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1.1fr);gap:24px}
+.sheet-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px 28px}
 @media (max-width:900px){.sheet-grid{grid-template-columns:minmax(0,1fr)}}
 .sheet-grid h3,.squad-group h3{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-2);margin:0 0 10px}
 .tl{display:flex;flex-direction:column;gap:2px}
@@ -236,6 +236,39 @@ a.card:hover{text-decoration:none;transform:translateY(-2px)}
 @media (max-width:520px){#squad .row{flex-wrap:wrap}#squad .chips{max-width:none;width:100%;justify-content:flex-start;padding-left:42px}}
 .status.susp{color:var(--loss);background:color-mix(in srgb,var(--loss) 12%,transparent)}
 .official{color:var(--win)}
+
+
+/* Compositions sur terrain (fiche du match) */
+.lineups{grid-column:1/-1}
+.lu-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.lu-head h3{margin:0}
+.lu-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.lu-team .meta{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--fg-2);margin-top:10px;flex-wrap:wrap}
+.lu-team .meta b{color:var(--fg);font-weight:600}
+.lu-tog{display:none}
+@media (max-width:760px){.lu-grid{grid-template-columns:minmax(0,1fr)}.lu-tog{display:inline-flex}.lu-grid[data-show="home"] .lu-team.away,.lu-grid[data-show="away"] .lu-team.home{display:none}}
+.fpitch{position:relative;border-radius:16px;overflow:hidden;aspect-ratio:3/4;max-width:100%;
+  background:repeating-linear-gradient(135deg,var(--pitch-a) 0 28px,var(--pitch-b) 28px 56px);
+  display:flex;flex-direction:column;justify-content:space-around;padding:22px 6px 26px}
+.fpitch::before{content:"";position:absolute;left:10px;right:10px;top:-1px;bottom:10px;border:1.5px solid var(--pitch-line);border-top:0;border-radius:0 0 6px 6px;pointer-events:none}
+.fpitch .box{position:absolute;left:28%;right:28%;bottom:10px;height:15%;border:1.5px solid var(--pitch-line);border-bottom:0;pointer-events:none}
+.fpitch .box6{position:absolute;left:40%;right:40%;bottom:10px;height:6%;border:1.5px solid var(--pitch-line);border-bottom:0;pointer-events:none}
+.fpitch .arc{position:absolute;left:50%;top:-14%;width:36%;aspect-ratio:1;transform:translateX(-50%);border:1.5px solid var(--pitch-line);border-radius:50%;pointer-events:none}
+.fline{display:flex;justify-content:space-around;position:relative;z-index:1}
+.fp{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1 1 0;min-width:0;position:relative}
+.fp .shirt{position:relative;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums;box-shadow:0 3px 8px rgba(0,0,0,.35),inset 0 0 0 2px rgba(255,255,255,.85)}
+.fp .nm{font-size:12px;font-weight:600;color:#fff;text-align:center;line-height:1.15;text-shadow:0 1px 3px rgba(0,0,0,.6);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
+.fp .tags{position:absolute;top:-6px;right:calc(50% - 30px);display:flex;gap:2px}
+.fp .tags i{display:block;font-style:normal}
+.fp .tg{width:9px;height:12px;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.4)}
+.fp .tg.y{background:#f5c518}.fp .tg.r{background:#e23b3b}
+.fp .tg.g{width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 3px #222,0 1px 2px rgba(0,0,0,.4)}
+.fp .off{position:absolute;bottom:18px;left:calc(50% + 12px);font-size:10px;font-weight:700;color:#fff;background:#e23b3b;border-radius:6px;padding:1px 4px;font-style:normal}
+@media (max-width:420px){.fp .shirt{width:36px;height:36px;font-size:13px}.fp .nm{font-size:11px}}
+.subs{margin-top:10px;font-size:13px;display:flex;flex-direction:column;gap:4px}
+.subs div{display:flex;gap:8px;align-items:baseline}
+.subs b{font-variant-numeric:tabular-nums;color:var(--fg-2);width:30px;flex:none;font-weight:600}
+.subs .in{color:var(--win);font-weight:700}
 
 /* Notifications */
 .iconbtn{all:unset;cursor:pointer;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--fg);background:var(--surface-2);flex:none;position:relative}
@@ -539,6 +572,40 @@ body.filter-on [data-sec]:not(.show){display:none}
       return `<div class="stat"><span class="lab">${esc(S.statLabels?.[k] || k)}</span><span class="v">${fmtv(h)}</span><span></span><span class="v r">${fmtv(a)}</span>
         <div class="sbar"><i style="width:${(h / tot) * 100}%;background:${hp ? "var(--navy)" : "var(--fg-3)"}"></i><i style="width:${(a / tot) * 100}%;background:${ap ? "var(--navy)" : "var(--fg-3)"}"></i></div></div>`;
     }).join("") || `<p class="empty">Statistiques disponibles pendant le match.</p>`;
+    // Composition sur un terrain, comme dans les applis de foot.
+    const RANK = a => /^G/.test(a) ? 0 : /^(CD|LB|RB|LWB|RWB|SW|D)/.test(a) ? 1 : /^DM/.test(a) ? 2 : /^AM/.test(a) ? 4 : /^(CM|LM|RM|M)/.test(a) ? 3 : 5;
+    // De gauche à droite : côté gauche (LB), axe gauche (CD-L), axe, axe droit (CD-R), côté droit (RB).
+    const SIDE = a => /^L/.test(a) ? 0 : /-L$/.test(a) ? 1 : /^R/.test(a) ? 4 : /-R$/.test(a) ? 3 : 2;
+    const shortName = n => { const w = String(n).split(" "); return w.length > 1 ? w.slice(1).join(" ") : n; }; // nom de famille
+    const lum = hex => { const v = parseInt(String(hex).slice(1), 16); return ((v >> 16 & 255) * 299 + (v >> 8 & 255) * 587 + (v & 255) * 114) / 1000; };
+    const pitch = (t, name, side) => {
+      const xi = (t.players || []).filter(p => p.starter);
+      if (xi.length < 11) return `<div class="lu-team ${side}"><div class="meta"><b>${esc(short(name))}</b> · compo pas encore publiée</div></div>`;
+      const sorted = xi.slice().sort((a, b) => RANK(a.pos) - RANK(b.pos) || SIDE(a.pos) - SIDE(b.pos) || (a.place || 0) - (b.place || 0));
+      let counts = [1, ...String(t.formation || "").split("-").map(Number).filter(Boolean)];
+      if (counts.reduce((x, y) => x + y, 0) !== 11) { counts = []; let r = -1; for (const p of sorted) { if (RANK(p.pos) !== r) { counts.push(0); r = RANK(p.pos); } counts[counts.length - 1]++; } }
+      const lines = []; let i = 0; for (const c of counts) { lines.push(sorted.slice(i, i + c)); i += c; }
+      const ev = (S.events || []).filter(e => e.side === side);
+      const bg = isPSG(name) ? "#0a3a7a" : (t.color || "#888888"), fg = lum(bg) > 150 ? "#111" : "#fff";
+      const chip = p => {
+        const g = ev.filter(e => ["goal", "pen"].includes(e.kind) && e.player === p.name).length;
+        const card = ev.find(e => ["red", "yellowred"].includes(e.kind) && e.player === p.name) ? "r" : ev.find(e => e.kind === "yellow" && e.player === p.name) ? "y" : "";
+        const off = ev.find(e => e.kind === "sub" && e.other === p.name);
+        return `<div class="fp"><div class="shirt" style="background:${bg};color:${fg}">${esc(p.jersey)}</div>
+          <span class="tags">${"<i class=\"tg g\" title=\"But\"></i>".repeat(g)}${card ? `<i class="tg ${card}" title="${card === "r" ? "Carton rouge" : "Carton jaune"}"></i>` : ""}</span>
+          ${off ? `<i class="off" title="Remplacé">${esc(off.min)}'</i>` : ""}
+          <span class="nm">${esc(shortName(p.name))}</span></div>`;
+      };
+      const subs = ev.filter(e => e.kind === "sub");
+      return `<div class="lu-team ${side}"><div class="fpitch"><span class="arc"></span><span class="box"></span><span class="box6"></span>
+          ${lines.slice().reverse().map(l => `<div class="fline">${l.map(chip).join("")}</div>`).join("")}</div>
+        <div class="meta">${mini(name)}<b>${esc(short(name))}</b> · ${esc(t.formation || "")}</div>
+        ${subs.length ? `<div class="subs">${subs.map(e => `<div><b>${esc(e.min)}'</b><span><span class="in">↑</span> ${esc(e.player)}${e.other ? ` <span style="color:var(--fg-2)">pour ${esc(e.other)}</span>` : ""}</span></div>`).join("")}</div>` : ""}</div>`;
+    };
+    const psgSide = isPSG(aName) ? "away" : "home";
+    let luShow = psgSide;
+    const lineupsHtml = `<div class="lineups"><div class="lu-head"><h3>Compositions</h3><div class="toggle lu-tog" role="group" aria-label="Équipe">${[["home", hName], ["away", aName]].map(([k, n]) => `<button type="button" data-lu="${k}" aria-pressed="${k === luShow}">${esc(short(n))}</button>`).join("")}</div></div>
+      <div class="lu-grid" data-show="${luShow}">${pitch(S.home, hName, "home")}${pitch(S.away, aName, "away")}</div></div>`;
     const xiCol = (t, name) => {
       const starters = (t.players || []).filter(p => p.starter).sort((a, b) => (a.place || 99) - (b.place || 99));
       const subs = (t.players || []).filter(p => p.in);
@@ -551,8 +618,12 @@ body.filter-on [data-sec]:not(.show){display:none}
       <div class="sheet-grid">
         <div><h3>Chronologie</h3>${tl}</div>
         <div><h3>Statistiques</h3>${stats}</div>
-        <div><h3>Compositions</h3><div class="xi">${xiCol(S.home, hName)}${xiCol(S.away, aName)}</div></div>
+        ${lineupsHtml}
       </div>`;
+    el.querySelectorAll("[data-lu]").forEach(b => b.addEventListener("click", () => {
+      el.querySelector(".lu-grid").dataset.show = b.dataset.lu;
+      el.querySelectorAll("[data-lu]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    }));
   }
 
   /* ---------- Buteurs et effectif ---------- */

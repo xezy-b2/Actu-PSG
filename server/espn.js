@@ -46,7 +46,8 @@ function buildSheet(summary, league) {
       name: p.athlete?.displayName || "", jersey: p.jersey || "", pos: p.position?.abbreviation || "",
       starter: !!p.starter, in: !!p.subbedIn, out: !!p.subbedOut, place: Number(p.formationPlace) || 0,
     }));
-    return { id: c.team?.id, name: c.team?.displayName || "", score: c.score != null ? Number(c.score) : null, formation: roster?.formation || "", stats, players };
+    const hex = v => (/^[0-9a-f]{6}$/i.test(v || "") ? "#" + v : null);
+    return { id: c.team?.id, name: c.team?.displayName || "", score: c.score != null ? Number(c.score) : null, formation: roster?.formation || "", color: hex(c.team?.color), altColor: hex(c.team?.alternateColor), stats, players };
   };
   const events = (summary.keyEvents || []).map(k => {
     const kind = eventKind(k.type?.type);
