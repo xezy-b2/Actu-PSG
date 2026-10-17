@@ -119,6 +119,16 @@ function parseRss(xml) {
   });
 }
 
+// Faux articles qui renvoient vers des diffusions pirates ("[DIRECT!VOIR]+Strasbourg - PSG streaming…").
+function isSpam(title, source = "") {
+  const t = String(title || ""), low = t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (/[\[\]$@*]|&\$|#\?|\+[a-z]|!\]/i.test(t)) return true;                         // symboles typiques du spam
+  if (/(?:\b\S ){6,}/.test(t)) return true;                                            // l e t t r e s  e s p a c é e s
+  if (/stream|streaming|diffusion|regarder|voir (le )?match|voir tv|live tv|lien|gratuit|free|watch|en direct live|direct live|live\s*!/.test(low)) return true;
+  if (/universi|college|ecole|school|\.edu|eventbrite|gouv|\.gov|blogspot|wixsite|weebly|sites\.google/i.test(source)) return true;
+  return false;
+}
+
 function categorize(title) {
   const t = title.toLowerCase();
   if (/mercato|transfert|prolong|contrat|recrue|offre|signe |signature|prêt|vente|bon de sortie/.test(t)) return "mercato";
@@ -135,7 +145,7 @@ async function fetchNews(feeds = DEFAULT_FEEDS) {
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     const items = parseRss(await res.text());
     return items
-      .filter(i => i.title && /^https:\/\//.test(i.link))
+      .filter(i => i.title && /^https:\/\//.test(i.link) && !isSpam(i.title, i.source || f.source))
       .filter(i => !f.filter || i.categories.some(c => /\bpsg\b|paris saint-germain|paris sg/i.test(c)) || /\bpsg\b|paris saint-germain/i.test(i.title))
       .map(i => {
         let title = i.title, source = f.source || i.source || "";
@@ -221,4 +231,4 @@ class AutoData {
   }
 }
 
-module.exports = { AutoData, buildMatches, buildStandings, parseRss, categorize, cleanTeam, fetchNews, isPSG };
+module.exports = { isSpam, AutoData, buildMatches, buildStandings, parseRss, categorize, cleanTeam, fetchNews, isPSG };

@@ -82,3 +82,13 @@ test("fusion : infos rédigées gardées pour le même match, score en direct pa
   assert.equal(out.nextMatch.sofascoreId, undefined);
   assert.equal(out.lineup, null);
 });
+
+test("fil d'actu : liens de diffusion pirates retirés", () => {
+  const { isSpam } = require("./autodata");
+  for (const t of ["$$@@[diffusion", "&$#?>*[DIRECT!VOIR]+Strasbourg - PSG match En Direct 1 7 o c t o b r e 2 0 2 6",
+    "[EN DIRECT!]+Strasbourg - PSG en Direct Streaming Live", "[DIRECT!LIVE]+Strasbourg PSG e n D i r e c t S t r e a m i n g French Ligue 1",
+    "Strasbourg PSG streaming gratuit", "Comment regarder Strasbourg - PSG"]) assert.ok(isSpam(t), t);
+  assert.ok(isSpam("Strasbourg - PSG en direct", "Universidad de Córdoba (UCO)"));
+  for (const t of ["PSG – OL : coup dur, les supporters interdits de déplacement", "Strasbourg-PSG : les compositions officielles",
+    "Mercato : le PSG prolonge Zaïre-Emery jusqu'en 2031", "Strasbourg - PSG (1-3) : Paris enchaîne", "Luis Enrique : « On veut monter au classement »"]) assert.ok(!isSpam(t, "L'Équipe"), t);
+});
