@@ -18,7 +18,7 @@ function goalText(g, home, away) {
   return g.player ? `But de ${g.player}${extra} · ${team}` : `But · ${team}`;
 }
 
-function mergeData(base = {}, auto = {}, live = null, now = Date.now()) {
+function mergeData(base = {}, auto = {}, live = null, now = Date.now(), ai = null) {
   const out = { ...base };
   if (auto.results?.length) out.results = auto.results;
   if (auto.fixtures?.length) out.fixtures = auto.fixtures;
@@ -57,10 +57,29 @@ function mergeData(base = {}, auto = {}, live = null, now = Date.now()) {
     .sort((a, b) => String(b.publishedAt).localeCompare(String(a.publishedAt)))
     .slice(0, 30);
 
+  // Éditorial généré par l'API Claude (s'il est configuré) : prioritaire s'il concerne le bon match.
+  if (ai && ai.updatedAt) {
+    if (ai.lineup?.lines?.length && out.nextMatch && sameMatch(out.nextMatch, ai.forMatch)) out.lineup = ai.lineup;
+    if (Array.isArray(ai.absents)) out.absents = ai.absents;
+    if (ai.transfers) out.transfers = { ...(out.transfers || {}), ...ai.transfers };
+    out.editorialUpdatedAt = ai.updatedAt;
+  }
+
+  // Fiche de match, effectif et buteurs (ESPN).
+  if (auto.matchSheet) out.matchSheet = auto.matchSheet;
+  if (auto.scorers) out.scorers = auto.scorers;
+  if (auto.squad?.length) {
+    const lastName = n => norm2(String(n).split(" ").slice(-1)[0]);
+    const statusOf = p => (out.absents || []).find(a => lastName(a.name) === lastName(p.name) || norm2(a.name) === norm2(p.name));
+    out.squad = auto.squad.map(p => { const a = statusOf(p); return a ? { ...p, status: a.status, statusReason: a.reason } : p; });
+    out.squadGroups = auto.squadGroups;
+  }
+
   out.updatedAt = new Date(now).toISOString();
   return out;
 }
 
+const norm2 = n => String(n || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]/g, "");
 function pick(o, keys) { return Object.fromEntries(keys.filter(k => o[k] !== undefined).map(k => [k, o[k]])); }
 
 module.exports = { mergeData, sameMatch, norm };

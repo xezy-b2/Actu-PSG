@@ -1,6 +1,7 @@
 // Données récupérées automatiquement par le serveur, sans Claude ni GitHub :
 // matchs du PSG et classement (football-data.org), fil d'actu (flux RSS).
 const crypto = require("crypto");
+const { fetchSheet, fetchSquad } = require("./espn");
 
 const UA = "Mozilla/5.0 (compatible; ActuPSG/1.2; +https://github.com/xezy-b2/actu-psg)";
 const COMP = { FL1: "Ligue 1", CL: "Ligue des champions", FRCH: "Trophée des champions", CDF: "Coupe de France" };
@@ -84,7 +85,11 @@ function buildMatches(matches, now = Date.now()) {
   // Écusson de chaque équipe croisée, par nom affiché.
   const crests = {};
   for (const m of list) { if (m.homeCrest) crests[m.home] = m.homeCrest; if (m.awayCrest) crests[m.away] = m.awayCrest; }
-  return { results, fixtures, nextMatch, crests };
+  // Match de la fiche détaillée : en cours, juste avant (compos), ou le dernier joué.
+  const soon = upcoming.find(m => m.t - now < 2 * 3600e3);
+  const target = live || soon || finished[finished.length - 1] || null;
+  const sheetTarget = target ? { home: target.home, away: target.away, kickoff: new Date(target.t).toISOString(), code: target.raw.competition?.code || "", live: !!live, finished: target.status === "FINISHED" } : null;
+  return { results, fixtures, nextMatch, crests, sheetTarget };
 }
 
 function buildStandings(j) {
@@ -166,6 +171,33 @@ class AutoData {
     this.onChange = onChange;
     const run = () => this.refresh().catch(e => console.warn("[auto]", e.message));
     run(); this.timer = setInterval(run, this.intervalMs); this.timer.unref?.();
+    // Effectif et stats : toutes les 3 h. Fiche de match : chaque minute pendant un match, sinon toutes les 15 min.
+    const squad = () => this.refreshSquad().catch(e => console.warn("[squad]", e.message));
+    setTimeout(squad, 5000); setInterval(squad, 3 * 3600e3).unref?.();
+    const sheetLoop = async () => {
+      await this.refreshSheet().catch(e => console.warn("[sheet]", e.message));
+      const live = this.data.sheetTarget?.live || ["LIVE", "HT"].includes(this.data.matchSheet?.status) || (this.data.watcherLive && Date.now() - this.data.watcherLive < 5 * 60e3);
+      setTimeout(sheetLoop, live ? 60e3 : 15 * 60e3).unref?.();
+    };
+    setTimeout(sheetLoop, 15000);
+  }
+  async refreshSquad() {
+    try {
+      const { squad, scorers, groups } = await fetchSquad();
+      Object.assign(this.data, { squad, scorers, squadGroups: groups });
+      this.status.squad = { ok: true, players: squad.length };
+      this.onChange?.();
+    } catch (e) { this.status.squad = { ok: false, error: e.message }; }
+  }
+  async refreshSheet() {
+    const t = this.data.sheetTarget;
+    if (!t) { this.status.sheet = { ok: false, error: "aucun match à afficher" }; return; }
+    try {
+      const sheet = await fetchSheet({ home: t.home, away: t.away, kickoff: Date.parse(t.kickoff) }, t.code);
+      this.data.matchSheet = { ...sheet, home: { ...sheet.home, label: t.home }, away: { ...sheet.away, label: t.away }, kickoff: t.kickoff };
+      this.status.sheet = { ok: true, match: `${t.home} – ${t.away}`, status: sheet.status, at: new Date().toISOString() };
+      this.onChange?.();
+    } catch (e) { this.status.sheet = { ok: false, error: e.message }; }
   }
   async refresh() {
     this.status.lastRun = new Date().toISOString();

@@ -9,6 +9,7 @@ const { Watcher } = require("./watcher");
 const { DataSync } = require("./datasync");
 const { AutoData } = require("./autodata");
 const { mergeData } = require("./merge");
+const { Editorial } = require("./editorial");
 
 const ROOT = path.join(__dirname, "..");
 const PORT = process.env.PORT || 3000;
@@ -59,15 +60,22 @@ async function main() {
   let watcher = null;
   // Données servies au site, recalculées à chaque changement d'une des trois sources.
   let served = null;
-  const rebuild = () => { served = JSON.stringify(mergeData(data.base, auto.data, watcher?.lastLive)); };
+  let editorial = null;
+  const rebuild = () => { served = JSON.stringify(mergeData(data.base, auto.data, watcher?.lastLive, Date.now(), editorial?.data)); };
   const onChange = async () => { rebuild(); try { await data.checkNews(JSON.parse(served).news || []); } catch (e) { console.warn("[news]", e.message); } };
   data.start(onChange);
   auto.start(onChange);
+  editorial = new Editorial({
+    apiKey: process.env.ANTHROPIC_API_KEY, model: process.env.ANTHROPIC_MODEL, maxSearches: process.env.AI_MAX_SEARCHES,
+    intervalHours: process.env.AI_INTERVAL_HOURS, store,
+    getContext: () => { try { if (!served) rebuild(); return JSON.parse(served); } catch (e) { return {}; } },
+  });
+  editorial.start(onChange);
 
   if (process.env.WATCHER_DISABLED !== "1") {
     const getFixture = () => { try { if (!served) rebuild(); return fixtureFromData(JSON.parse(served)); } catch (e) { return null; } };
     watcher = new Watcher({ store: store || new (require("./store").MemoryStore)(), provider: createProvider(), notify, getFixture, pollSeconds: Number(process.env.POLL_SECONDS) || undefined });
-    watcher.onLive = rebuild;
+    watcher.onLive = () => { auto.data.watcherLive = Date.now(); rebuild(); };
     watcher.start();
   }
 
@@ -123,6 +131,7 @@ async function main() {
       push: { enabled: !!publicKey, store: store?.kind || null, subscribers: store ? await store.countSubscriptions().catch(() => null) : null },
       data: { source: data.url, lastSync: data.lastSync, updatedAt: data.updatedAt, error: data.lastError },
       auto: auto.status,
+      editorial: editorial ? { ...editorial.status, updatedAt: editorial.data?.updatedAt || null } : null,
       watcher: watcher ? watcher.status : "désactivé",
     });
   });

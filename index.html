@@ -182,6 +182,61 @@ a.card:hover{text-decoration:none;transform:translateY(-2px)}
 .empty{color:var(--fg-2);font-size:14px;padding:24px 0;text-align:center}
 .skeleton{height:14px;border-radius:7px;background:var(--surface-2);margin:10px 0}
 
+
+/* Fiche de match */
+.sheet-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.sheet-score{display:flex;align-items:center;gap:12px;font-size:20px;font-weight:700;letter-spacing:-.02em;flex-wrap:wrap}
+.sheet-score .n{font-variant-numeric:tabular-nums;font-size:26px}
+.sheet-score .mini{width:24px;height:24px}
+.sheet-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1.1fr);gap:24px}
+@media (max-width:900px){.sheet-grid{grid-template-columns:minmax(0,1fr)}}
+.sheet-grid h3,.squad-group h3{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-2);margin:0 0 10px}
+.tl{display:flex;flex-direction:column;gap:2px}
+.tl-row{display:grid;grid-template-columns:1fr 44px 1fr;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:14px}
+.tl-row:first-child{border-top:0}
+.tl-row .min{text-align:center;font-variant-numeric:tabular-nums;color:var(--fg-2);font-size:12px;font-weight:600}
+.tl-row .l{text-align:right}
+.tl-ev{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.tl-row .l .tl-ev{flex-direction:row-reverse}
+.tl-ev small{color:var(--fg-2);font-size:12px;display:block}
+.tl-ev > span{min-width:0}
+.ico{width:14px;height:14px;flex:none;display:inline-block}
+.ico.goal{border-radius:50%;background:var(--fg);box-shadow:inset 0 0 0 3px var(--surface),0 0 0 1.5px var(--fg)}
+.ico.yellow{width:10px;height:14px;border-radius:2px;background:#f5c518}
+.ico.red{width:10px;height:14px;border-radius:2px;background:var(--loss)}
+.ico.yellowred{width:10px;height:14px;border-radius:2px;background:linear-gradient(135deg,#f5c518 50%,var(--loss) 50%)}
+.ico.sub{color:var(--win);font-style:normal;font-weight:700;font-size:13px;line-height:14px;text-align:center}
+.ico.miss{border-radius:50%;border:2px solid var(--loss)}
+.stat{display:grid;grid-template-columns:40px 1fr 40px;align-items:center;gap:8px;font-size:13px;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.stat .v{font-weight:600}.stat .v.r{text-align:right}
+.stat .lab{grid-column:1/-1;text-align:center;color:var(--fg-2);font-size:12px;margin-bottom:-4px}
+.sbar{grid-column:1/-1;display:flex;height:6px;border-radius:3px;overflow:hidden;gap:2px;background:var(--surface-2)}
+.sbar i{display:block;height:100%}
+.xi{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+.xi ul{list-style:none;margin:0;padding:0;font-size:13px;display:flex;flex-direction:column;gap:4px}
+.xi li{display:flex;gap:6px;align-items:baseline;min-width:0}
+.xi li b{font-variant-numeric:tabular-nums;color:var(--fg-2);width:20px;flex:none;text-align:right;font-weight:600}
+.xi li.subin{color:var(--fg-2)}
+.xi .f{font-size:12px;color:var(--fg-2);margin-bottom:6px;font-weight:600}
+/* Buteurs */
+.toggle{display:inline-flex;background:var(--surface-2);border-radius:9px;padding:2px;gap:2px}
+.toggle button{all:unset;cursor:pointer;white-space:nowrap;padding:4px 10px;border-radius:7px;font-size:12px;font-weight:600;color:var(--fg-2)}
+.toggle button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.rank{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+@media (max-width:520px){.rank{grid-template-columns:minmax(0,1fr)}}
+.big{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+/* Effectif */
+.squad-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 28px}
+@media (max-width:760px){.squad-groups{grid-template-columns:minmax(0,1fr)}}
+.squad-group{margin-bottom:12px}
+.num{flex:none;width:30px;height:30px;border-radius:9px;background:var(--surface-2);display:grid;place-items:center;font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
+.chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;flex:0 1 auto;max-width:60%}
+.chip2{font-size:11px;font-weight:600;padding:3px 7px;border-radius:999px;background:var(--surface-2);color:var(--fg-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.chip2 b{color:var(--fg)}
+@media (max-width:520px){#squad .row{flex-wrap:wrap}#squad .chips{max-width:none;width:100%;justify-content:flex-start;padding-left:42px}}
+.status.susp{color:var(--loss);background:color-mix(in srgb,var(--loss) 12%,transparent)}
+.official{color:var(--win)}
+
 /* Notifications */
 .iconbtn{all:unset;cursor:pointer;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--fg);background:var(--surface-2);flex:none;position:relative}
 .iconbtn:hover{background:color-mix(in srgb,var(--fg) 12%,var(--surface-2))}
@@ -237,6 +292,7 @@ body.filter-on [data-sec]:not(.show){display:none}
       <button type="button" data-f="mercato" aria-pressed="false">Mercato</button>
       <button type="button" data-f="news" aria-pressed="false">Actu</button>
       <button type="button" data-f="table" aria-pressed="false">Classement</button>
+      <button type="button" data-f="squad" aria-pressed="false">Effectif</button>
     </nav>
     <div class="sync" id="sync"><span class="dot pulse"></span><span id="syncTxt">Connexion…</span></div>
     <button type="button" class="iconbtn" id="bell" hidden aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button>
@@ -272,6 +328,7 @@ body.filter-on [data-sec]:not(.show){display:none}
   </section>
 
   <div class="grid">
+    <section class="tile span2" data-sec="match" id="sheet" hidden></section>
     <section class="tile" data-sec="compo" id="lineup"><div class="tile-head"><h2>Compo probable</h2></div><div class="skeleton"></div></section>
     <section class="tile" data-sec="compo" id="absents"><div class="tile-head"><h2>Infirmerie</h2></div><div class="skeleton"></div></section>
     <section class="tile" data-sec="match" id="results"><div class="tile-head"><h2>Derniers résultats</h2></div><div class="skeleton"></div></section>
@@ -279,6 +336,8 @@ body.filter-on [data-sec]:not(.show){display:none}
     <section class="tile span2" data-sec="news" id="news"><div class="tile-head"><h2>Fil d'actu</h2></div><div class="skeleton"></div></section>
     <section class="tile" data-sec="mercato" id="mercato"><div class="tile-head"><h2>Mercato</h2></div><div class="skeleton"></div></section>
     <section class="tile" data-sec="table" id="table"><div class="tile-head"><h2>Ligue 1</h2></div><div class="skeleton"></div></section>
+    <section class="tile" data-sec="squad" id="scorers" hidden></section>
+    <section class="tile span2" data-sec="squad" id="squad" hidden></section>
   </div>
 </main>
 <footer id="foot">Site de suivi non officiel, sans lien avec le Paris Saint-Germain. Données compilées depuis la presse sportive et mises à jour automatiquement chaque heure.</footer>
@@ -371,7 +430,7 @@ body.filter-on [data-sec]:not(.show){display:none}
   /* ---------- lineup ---------- */
   function renderLineup() {
     const L = state?.lineup; const el = $("lineup");
-    const head = `<div class="tile-head"><h2>Compo probable</h2><small>${esc(L?.formation || "")}</small></div>`;
+    const head = `<div class="tile-head"><h2>${L?.official ? "Compo officielle" : "Compo probable"}</h2><small>${L?.official ? '<span class="official">● </span>' : ""}${esc(L?.formation || "")}</small></div>`;
     if (!L || !L.lines?.length) { el.innerHTML = head + `<p class="empty">La compo sera publiée avant le prochain match.</p>`; return; }
     const lines = L.lines.map(line => `<div class="pline">${line.map(n => {
       const last = String(n).split(" ").slice(-1)[0];
@@ -382,10 +441,11 @@ body.filter-on [data-sec]:not(.show){display:none}
   }
 
   /* ---------- absents ---------- */
+  const statusPill = st => st === "out" ? `<span class="status out">Forfait</span>` : st === "suspended" ? `<span class="status susp">Suspendu</span>` : st === "doubt" ? `<span class="status doubt">Incertain</span>` : "";
   function renderAbsents() {
     const A = state?.absents || []; const el = $("absents");
     const head = `<div class="tile-head"><h2>Infirmerie</h2><small>${A.length ? A.length + " joueur" + (A.length > 1 ? "s" : "") : ""}</small></div>`;
-    el.innerHTML = head + (A.length ? `<div class="list">${A.map(a => `<div class="row"><div class="grow"><div>${esc(a.name)}</div><div class="sub">${esc(a.reason)}</div></div><span class="status ${a.status === "out" ? "out" : "doubt"}">${a.status === "out" ? "Forfait" : "Incertain"}</span></div>`).join("")}</div>` : `<p class="empty">Aucun blessé signalé.</p>`);
+    el.innerHTML = head + (A.length ? `<div class="list">${A.map(a => `<div class="row"><div class="grow"><div>${esc(a.name)}</div><div class="sub">${esc(a.reason)}</div></div>${statusPill(a.status)}</div>`).join("")}</div>` : `<p class="empty">Aucun blessé signalé.</p>`);
   }
 
   /* ---------- results / fixtures ---------- */
@@ -446,7 +506,80 @@ body.filter-on [data-sec]:not(.show){display:none}
     const u = toDate(state?.updatedAt);
     $("syncTxt").textContent = u ? "Mis à jour " + ago(state.updatedAt) : "En direct";
   }
-  function renderAll() { renderHero(); renderLineup(); renderAbsents(); renderResults(); renderFixtures(); renderTable(); renderMercato(); renderNews(); renderSync(); }
+
+  /* ---------- Fiche de match ---------- */
+  const STAT_ORDER = ["possessionPct", "totalShots", "shotsOnTarget", "wonCorners", "foulsCommitted", "offsides", "saves", "yellowCards", "redCards"];
+  function evHtml(e, sheet) {
+    const ico = { goal: "goal", pen: "goal", own: "goal", yellow: "yellow", red: "red", yellowred: "yellowred", sub: "sub", penmiss: "miss" }[e.kind];
+    const icon = ico === "sub" ? `<i class="ico sub" aria-hidden="true">⇄</i>` : `<i class="ico ${ico}" aria-hidden="true"></i>`;
+    let label = esc(e.player), extra = "";
+    if (e.kind === "sub") extra = e.other ? `<small>pour ${esc(e.other)}</small>` : "";
+    else if (["goal", "pen"].includes(e.kind) && e.other) extra = `<small>${e.kind === "pen" ? "pen." : "passe " + esc(e.other)}</small>`;
+    else if (e.kind === "pen") extra = `<small>pen.</small>`;
+    else if (e.kind === "own") extra = `<small>c.s.c.</small>`;
+    else if (e.kind === "penmiss") extra = `<small>penalty manqué</small>`;
+    const names = { goal: "But", pen: "But sur penalty", own: "But contre son camp", yellow: "Carton jaune", red: "Carton rouge", yellowred: "Second jaune", sub: "Remplacement", penmiss: "Penalty manqué" };
+    return `<span class="tl-ev" title="${names[e.kind]}">${icon}<span>${label} ${extra}</span></span>`;
+  }
+  function renderSheet() {
+    const S = state?.matchSheet; const el = $("sheet");
+    if (!S || !S.home) { el.hidden = true; return; }
+    el.hidden = false;
+    const live = S.status === "LIVE" || S.status === "HT";
+    const pill = live ? `<span class="pill live"><span class="dot pulse"></span>${S.status === "HT" ? "Mi-temps" : "En direct" + (S.clock ? " · " + esc(S.clock) : "")}</span>`
+      : S.status === "FT" ? `<span class="pill final">Terminé</span>` : `<span class="pill">Avant-match</span>`;
+    const hName = S.home.label || S.home.name, aName = S.away.label || S.away.name;
+    const d = toDate(S.kickoff || S.date);
+    const score = S.status === "NS" ? `<span class="n">–</span>` : `<span class="n">${esc(S.home.score ?? 0)} – ${esc(S.away.score ?? 0)}</span>`;
+    const tl = (S.events || []).length ? `<div class="tl">${S.events.map(e => `<div class="tl-row"><div class="l">${e.side === "home" ? evHtml(e, S) : ""}</div><div class="min">${esc(e.min)}'</div><div>${e.side === "away" ? evHtml(e, S) : ""}</div></div>`).join("")}</div>` : `<p class="empty">Aucun événement pour l'instant.</p>`;
+    const stats = STAT_ORDER.filter(k => S.home.stats?.[k] != null || S.away.stats?.[k] != null).map(k => {
+      const h = Number(S.home.stats?.[k] ?? 0), a = Number(S.away.stats?.[k] ?? 0), tot = h + a || 1;
+      const fmtv = v => k === "possessionPct" ? Math.round(v) + " %" : v;
+      const hp = isPSG(hName), ap = isPSG(aName);
+      return `<div class="stat"><span class="lab">${esc(S.statLabels?.[k] || k)}</span><span class="v">${fmtv(h)}</span><span></span><span class="v r">${fmtv(a)}</span>
+        <div class="sbar"><i style="width:${(h / tot) * 100}%;background:${hp ? "var(--navy)" : "var(--fg-3)"}"></i><i style="width:${(a / tot) * 100}%;background:${ap ? "var(--navy)" : "var(--fg-3)"}"></i></div></div>`;
+    }).join("") || `<p class="empty">Statistiques disponibles pendant le match.</p>`;
+    const xiCol = (t, name) => {
+      const starters = (t.players || []).filter(p => p.starter).sort((a, b) => (a.place || 99) - (b.place || 99));
+      const subs = (t.players || []).filter(p => p.in);
+      if (!starters.length) return `<div><div class="f">${esc(short(name))}</div><p class="sub" style="color:var(--fg-2);font-size:13px;margin:0">Compo pas encore publiée</p></div>`;
+      return `<div><div class="f">${esc(short(name))} · ${esc(t.formation || "")}</div><ul>${starters.map(p => `<li><b>${esc(p.jersey)}</b><span>${esc(p.name)}${p.out ? ' <i class="ico sub" style="color:var(--loss)" title="Remplacé">↓</i>' : ""}</span></li>`).join("")}
+        ${subs.map(p => `<li class="subin"><b>${esc(p.jersey)}</b><span>${esc(p.name)} <i class="ico sub" title="Entré en jeu">↑</i></span></li>`).join("")}</ul></div>`;
+    };
+    el.innerHTML = `<div class="tile-head"><h2>Fiche du match</h2><small>${d ? esc(fmt(d, { weekday: "long", day: "numeric", month: "long" })) : ""}</small></div>
+      <div class="sheet-top"><div class="sheet-score">${mini(hName)}<span>${esc(short(hName))}</span>${score}<span>${esc(short(aName))}</span>${mini(aName)}</div>${pill}</div>
+      <div class="sheet-grid">
+        <div><h3>Chronologie</h3>${tl}</div>
+        <div><h3>Statistiques</h3>${stats}</div>
+        <div><h3>Compositions</h3><div class="xi">${xiCol(S.home, hName)}${xiCol(S.away, aName)}</div></div>
+      </div>`;
+  }
+
+  /* ---------- Buteurs et effectif ---------- */
+  let scorerComp = "FL1";
+  try { scorerComp = localStorage.getItem("psg-scorers") || "FL1"; } catch (e) {}
+  function renderScorers() {
+    const S = state?.scorers; const el = $("scorers");
+    if (!S) { el.hidden = true; return; }
+    el.hidden = false;
+    const c = S[scorerComp] || { goals: [], assists: [] };
+    const list = (rows, key) => rows.length ? `<div class="list">${rows.map(r => `<div class="row"><span class="num">${esc(r.jersey || "–")}</span><div class="grow"><div>${esc(r.full || r.name)}</div><div class="sub">${r.app} match${r.app > 1 ? "s" : ""}</div></div><span class="big">${r[key]}</span></div>`).join("")}</div>` : `<p class="empty">Personne pour l'instant.</p>`;
+    el.innerHTML = `<div class="tile-head"><h2>Buteurs et passeurs</h2><div class="toggle" role="group" aria-label="Compétition">${[["FL1", "Ligue 1"], ["CL", "Ligue des champ."]].map(([k, l]) => `<button type="button" data-comp="${k}" aria-pressed="${k === scorerComp}">${l}</button>`).join("")}</div></div>
+      <div class="rank"><div><h3 class="sub" style="font-size:12px;color:var(--fg-2);text-transform:uppercase;letter-spacing:.06em;margin:0 0 6px">Buts</h3>${list(c.goals, "goals")}</div><div><h3 class="sub" style="font-size:12px;color:var(--fg-2);text-transform:uppercase;letter-spacing:.06em;margin:0 0 6px">Passes décisives</h3>${list(c.assists, "assists")}</div></div>`;
+    el.querySelectorAll("[data-comp]").forEach(b => b.addEventListener("click", () => { scorerComp = b.dataset.comp; try { localStorage.setItem("psg-scorers", scorerComp); } catch (e) {} renderScorers(); }));
+  }
+  function renderSquad() {
+    const Q = state?.squad; const el = $("squad");
+    if (!Q?.length) { el.hidden = true; return; }
+    el.hidden = false;
+    const groups = state.squadGroups || { G: "Gardiens", D: "Défenseurs", M: "Milieux", F: "Attaquants" };
+    const chip = (lab, st) => st && st.app ? `<span class="chip2">${lab} <b>${st.app}</b> m${st.goals ? ` · <b>${st.goals}</b> b` : ""}${st.assists ? ` · <b>${st.assists}</b> p` : ""}</span>` : "";
+    el.innerHTML = `<div class="tile-head"><h2>Effectif</h2><small>${Q.length} joueurs · m = matchs, b = buts, p = passes</small></div><div class="squad-groups">${Object.entries(groups).map(([g, label]) => {
+      const ps = Q.filter(p => p.group === g); if (!ps.length) return "";
+      return `<div class="squad-group"><h3>${esc(label)}</h3><div class="list">${ps.map(p => `<div class="row"><span class="num">${esc(p.jersey || "–")}</span><div class="grow"><div>${esc(p.name)}</div><div class="sub">${[p.age ? p.age + " ans" : "", p.nationality].filter(Boolean).map(esc).join(" · ")}${p.statusReason ? " · " + esc(p.statusReason) : ""}</div></div><div class="chips">${statusPill(p.status)}${chip("L1", p.stats?.FL1)}${chip("LdC", p.stats?.CL)}</div></div>`).join("")}</div></div>`;
+    }).join("")}</div>`;
+  }
+  function renderAll() { renderHero(); renderSheet(); renderLineup(); renderAbsents(); renderResults(); renderFixtures(); renderTable(); renderMercato(); renderNews(); renderScorers(); renderSquad(); renderSync(); }
 
   setInterval(() => { if (state) { tick(); renderSync(); const ph = state.nextMatch && matchPhase(state.nextMatch); if (ph !== renderHero._ph) { renderHero._ph = ph; renderHero(); } } }, 1000);
 

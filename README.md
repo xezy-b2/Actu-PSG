@@ -12,6 +12,8 @@ Le serveur Node.js (`server/`) tourne sur Railway et :
 - complète avec le contenu rédigé de `data.json` (compo, infirmerie, mercato), relu sur GitHub toutes les 2 minutes ;
 - suit le match du PSG en direct et envoie des notifications : buts, coup d'envoi, mi-temps, score final, compo officielle ;
 - envoie une notification pour les nouvelles infos du fil d'actu (option désactivée par défaut) ;
+- affiche une fiche de match complète (chronologie, statistiques, compositions), l'effectif avec les stats de la saison et les meilleurs buteurs et passeurs, via ESPN ;
+- si `ANTHROPIC_API_KEY` est défini, fait rédiger par Claude la compo probable, l'infirmerie et les rumeurs de mercato (recherche web limitée, vérifiée et reformulée) ;
 - garde les abonnements aux notifications dans MongoDB.
 
 Sans serveur (GitHub Pages), le site fonctionne toujours, mais sans notifications.
@@ -26,6 +28,10 @@ Sans serveur (GitHub Pages), le site fonctionne toujours, mais sans notification
 | `MONGODB_URI` | Oui | Chaîne de connexion MongoDB Atlas (`mongodb+srv://…`) |
 | `VAPID_SUBJECT` | Oui | Votre adresse de contact, au format `mailto:vous@exemple.fr` |
 | `FOOTBALL_DATA_KEY` | Conseillé | Clé gratuite [football-data.org](https://www.football-data.org/client/register), source de secours pour le score et la compo |
+| `ANTHROPIC_API_KEY` | Non | Clé de l'API Claude ([console.anthropic.com](https://console.anthropic.com)) : active la compo probable, l'infirmerie et les rumeurs de mercato rédigées automatiquement |
+| `ANTHROPIC_MODEL` | Non | Modèle utilisé (par défaut `claude-haiku-5-5`) |
+| `AI_MAX_SEARCHES` | Non | Recherches web par mise à jour (par défaut 3) |
+| `AI_INTERVAL_HOURS` | Non | Intervalle normal entre deux mises à jour (par défaut 3 h ; toutes les heures le jour de match, toutes les 20 min autour du coup d'envoi) |
 | `API_FOOTBALL_KEY` | Non | Clé API-Football (l'offre gratuite ne couvre pas la saison en cours) |
 | `MONGODB_DB` | Non | Nom de la base (par défaut `actu_psg`) |
 | `POLL_SECONDS` | Non | Intervalle de vérification pendant un match (120 s avec API-Football, 30 s avec Sofascore) |
