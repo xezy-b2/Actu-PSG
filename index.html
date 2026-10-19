@@ -274,6 +274,7 @@ a.card:hover{text-decoration:none;transform:translateY(-2px)}
 .iconbtn{all:unset;cursor:pointer;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--fg);background:var(--surface-2);flex:none;position:relative}
 .iconbtn:hover{background:color-mix(in srgb,var(--fg) 12%,var(--surface-2))}
 .iconbtn svg{width:18px;height:18px}
+.iconbtn.warn::after{content:"!";position:absolute;top:2px;right:2px;width:14px;height:14px;border-radius:50%;background:var(--warn);color:#000;font-size:10px;font-weight:800;display:grid;place-items:center}
 .iconbtn.on::after{content:"";position:absolute;top:6px;right:7px;width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 0 2px var(--surface-2)}
 dialog.sheet{border:0;padding:0;border-radius:20px;background:var(--surface);color:var(--fg);width:min(440px,calc(100vw - 32px));max-height:calc(100dvh - 48px);box-shadow:0 24px 64px rgba(0,0,0,.35)}
 dialog.sheet::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
@@ -699,6 +700,11 @@ body.filter-on [data-sec]:not(.show){display:none}
     else if (blocked) setMsg("Les notifications sont bloquées pour ce site. Autorisez-les dans les réglages du navigateur, puis revenez ici.", "err");
   }
 
+  // Mémorise sur l'appareil que l'utilisateur veut les notifications (et ses choix),
+  // pour réactiver tout seul un abonnement supprimé par le navigateur.
+  const remember = on => { try { on ? localStorage.setItem("psg-notif", JSON.stringify({ on: true, prefs: prefs() })) : localStorage.removeItem("psg-notif"); } catch (e) {} };
+  const remembered = () => { try { return JSON.parse(localStorage.getItem("psg-notif") || "null"); } catch (e) { return null; } };
+  const sameKey = (sub, key) => { try { const a = new Uint8Array(sub.options.applicationServerKey), b = b64ToBytes(key); return a.length === b.length && a.every((x, i) => x === b[i]); } catch (e) { return true; } };
   async function enable() {
     toggleBtn.disabled = true; setMsg("Activation…");
     try {
@@ -706,7 +712,7 @@ body.filter-on [data-sec]:not(.show){display:none}
       if (perm !== "granted") { setMsg("Vous n'avez pas autorisé les notifications.", "err"); return; }
       const sub = await swReg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(pushCfg.publicKey) });
       await post("push/subscribe", { subscription: sub.toJSON(), prefs: prefs() });
-      currentSub = sub; setMsg("Notifications activées sur cet appareil.", "ok");
+      currentSub = sub; remember(true); bell.classList.remove("warn"); setMsg("Notifications activées sur cet appareil.", "ok");
     } catch (e) { setMsg("L'activation a échoué : " + e.message, "err"); }
     finally { renderNotifUI(); }
   }
@@ -716,7 +722,7 @@ body.filter-on [data-sec]:not(.show){display:none}
       const endpoint = currentSub.endpoint;
       await currentSub.unsubscribe().catch(() => {});
       await post("push/unsubscribe", { endpoint }).catch(() => {});
-      currentSub = null; setMsg("Notifications désactivées sur cet appareil.");
+      currentSub = null; remember(false); setMsg("Notifications désactivées sur cet appareil.");
     } finally { renderNotifUI(); }
   }
   toggleBtn.addEventListener("click", () => currentSub ? disable() : enable());
@@ -730,10 +736,11 @@ body.filter-on [data-sec]:not(.show){display:none}
   document.querySelectorAll("[data-pref]").forEach(i => i.addEventListener("change", () => {
     if (!currentSub) return;
     clearTimeout(prefTimer);
+    remember(true);
     prefTimer = setTimeout(() => post("push/subscribe", { subscription: currentSub.toJSON(), prefs: prefs() })
       .then(() => setMsg("Préférences enregistrées.", "ok")).catch(e => setMsg(e.message, "err")), 400);
   }));
-  bell.addEventListener("click", () => { setMsg(""); renderNotifUI(); sheet.showModal(); });
+  bell.addEventListener("click", () => { if (!bell.classList.contains("warn")) setMsg(""); renderNotifUI(); sheet.showModal(); });
   sheet.addEventListener("click", e => { if (e.target === sheet) sheet.close(); });
 
   window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installPrompt = e; $("installBox").hidden = false; });
@@ -749,11 +756,26 @@ body.filter-on [data-sec]:not(.show){display:none}
     } catch (e) { return; }
     bell.hidden = false;
     currentSub = await swReg.pushManager?.getSubscription().catch(() => null) || null;
+    const mem = remembered();
+    if (mem?.prefs) setPrefs(mem.prefs);
+    // Abonnement créé avec d'anciennes clés du serveur : on le remplace.
+    if (currentSub && !sameKey(currentSub, pushCfg.publicKey)) { await currentSub.unsubscribe().catch(() => {}); currentSub = null; }
+    // Abonnement supprimé par le navigateur alors que l'utilisateur l'avait activé : on le recrée sans redemander.
+    if (!currentSub && mem?.on && Notification.permission === "granted") {
+      try {
+        currentSub = await swReg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(pushCfg.publicKey) });
+        await post("push/subscribe", { subscription: currentSub.toJSON(), prefs: prefs() });
+      } catch (e) { currentSub = null; bell.classList.add("warn"); }
+    }
     if (currentSub) {
-      try { const { prefs: p } = await post("push/prefs", { endpoint: currentSub.endpoint }); setPrefs(p); }
+      try { const { prefs: p } = await post("push/prefs", { endpoint: currentSub.endpoint }); setPrefs(p); remember(true); }
       catch (e) { // abonnement inconnu du serveur : on le réenregistre
         await post("push/subscribe", { subscription: currentSub.toJSON(), prefs: prefs() }).catch(() => {});
+        remember(true);
       }
+    } else if (mem?.on) {
+      bell.classList.add("warn");
+      setMsg(Notification.permission === "denied" ? "Les notifications ont été bloquées dans les réglages. Autorisez-les à nouveau pour PSG Live." : "Les notifications ont été coupées par le navigateur. Touchez « Activer les notifications » pour les remettre.", "err");
     }
     renderNotifUI();
   })();

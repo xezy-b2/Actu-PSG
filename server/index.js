@@ -53,6 +53,13 @@ async function main() {
     pushError = e.message;
     console.error("[push] Notifications désactivées :", e.message);
   }
+  // Journal des abonnements supprimés, renouvelés ou en erreur (visible dans /api/status).
+  const pushHost = ep => { try { const h = new URL(ep).hostname; return /apple/.test(h) ? "iPhone/Safari" : /fcm|google/.test(h) ? "Android/Chrome" : /mozilla/.test(h) ? "Firefox" : /windows|notify/.test(h) ? "Edge/Windows" : h; } catch (e) { return "?"; } };
+  const logPush = async (what, endpoint, code) => {
+    if (!store) return;
+    try { const log = (await store.getKV("pushLog")) || []; log.push({ at: new Date().toISOString(), what, device: pushHost(endpoint), code: code || null }); await store.setKV("pushLog", log.slice(-50)); } catch (e) {}
+  };
+  global.__logPush = logPush;
   const notify = (pref, payload, opts) => (store && publicKey ? broadcast(store, pref, payload, opts) : Promise.resolve());
 
   const data = new DataSync({ url: process.env.DATA_URL, localFile: path.join(ROOT, "data.json"), store, notify });
@@ -95,7 +102,9 @@ async function main() {
     if (!publicKey) return res.status(503).json({ error: "Notifications indisponibles" });
     const { subscription, prefs } = req.body || {};
     if (!validSubscription(subscription)) return res.status(400).json({ error: "Abonnement invalide" });
+    const existed = await store.getSubscription(subscription.endpoint);
     await store.upsertSubscription({ endpoint: subscription.endpoint, keys: { p256dh: subscription.keys.p256dh, auth: subscription.keys.auth } }, cleanPrefs(prefs));
+    if (!existed) await logPush("activé", subscription.endpoint);
     res.json({ ok: true, prefs: cleanPrefs(prefs) });
   });
   app.post("/api/push/prefs", rateLimit(30, 60e3), async (req, res) => {
@@ -105,10 +114,20 @@ async function main() {
     if (!sub) return res.status(404).json({ error: "Abonnement introuvable" });
     res.json({ prefs: cleanPrefs(sub.prefs) });
   });
+  app.post("/api/push/resubscribe", rateLimit(20, 60e3), async (req, res) => {
+    if (!publicKey) return res.status(503).json({ error: "Notifications indisponibles" });
+    const { oldEndpoint, subscription } = req.body || {};
+    if (!validSubscription(subscription)) return res.status(400).json({ error: "Abonnement invalide" });
+    const old = typeof oldEndpoint === "string" ? await store.getSubscription(oldEndpoint) : null;
+    await store.upsertSubscription({ endpoint: subscription.endpoint, keys: { p256dh: subscription.keys.p256dh, auth: subscription.keys.auth } }, cleanPrefs(old?.prefs));
+    if (old && old.endpoint !== subscription.endpoint) await store.removeSubscription(old.endpoint);
+    await logPush("renouvelé", subscription.endpoint);
+    res.json({ ok: true });
+  });
   app.post("/api/push/unsubscribe", rateLimit(20, 60e3), async (req, res) => {
     if (!publicKey) return res.status(503).json({ error: "Notifications indisponibles" });
     const { endpoint } = req.body || {};
-    if (typeof endpoint === "string") await store.removeSubscription(endpoint);
+    if (typeof endpoint === "string") { await store.removeSubscription(endpoint); await logPush("désactivé par l'utilisateur", endpoint); }
     res.json({ ok: true });
   });
   app.post("/api/push/test", rateLimit(5, 60e3), async (req, res) => {
@@ -119,7 +138,7 @@ async function main() {
       await sendOne(sub, { title: "Notifications activées", body: "Vous serez prévenu des buts et des temps forts du PSG.", tag: "test", url: "/" });
       res.json({ ok: true });
     } catch (e) {
-      if ([404, 410].includes(e.statusCode)) await store.removeSubscription(sub.endpoint);
+      if ([404, 410].includes(e.statusCode)) { await store.removeSubscription(sub.endpoint); await logPush("supprimé (expiré)", sub.endpoint, e.statusCode); }
       res.status(502).json({ error: "L'envoi a échoué. Désactivez puis réactivez les notifications." });
     }
   });
@@ -128,7 +147,9 @@ async function main() {
   app.get("/healthz", (req, res) => res.json({ ok: true }));
   app.get("/api/status", async (req, res) => {
     res.json({
-      push: { enabled: !!publicKey, store: store?.kind || null, subscribers: store ? await store.countSubscriptions().catch(() => null) : null },
+      push: { enabled: !!publicKey, store: store?.kind || null, subscribers: store ? await store.countSubscriptions().catch(() => null) : null,
+        devices: store ? await store.listSubscriptions().then(l => l.reduce((m, x) => { const h = pushHost(x.endpoint); m[h] = (m[h] || 0) + 1; return m; }, {})).catch(() => null) : null,
+        recent: store ? (await store.getKV("pushLog").catch(() => null) || []).slice(-15) : null },
       data: { source: data.url, lastSync: data.lastSync, updatedAt: data.updatedAt, error: data.lastError },
       auto: auto.status,
       editorial: editorial ? { ...editorial.status, updatedAt: editorial.data?.updatedAt || null } : null,

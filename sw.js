@@ -1,5 +1,5 @@
 // Service worker PSG Live : fonctionnement hors ligne et notifications.
-const CACHE = "psg-live-v3";
+const CACHE = "psg-live-v4";
 const BASE = new URL(self.registration.scope).pathname; // "/" sur Railway, "/actu-psg/" sur GitHub Pages
 const SHELL = ["", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/badge-96.png"].map((p) => BASE + p);
 
@@ -55,4 +55,18 @@ self.addEventListener("notificationclick", (e) => {
       return self.clients.openWindow(target);
     })
   );
+});
+
+// Le navigateur renouvelle parfois l'abonnement : on prévient le serveur pour ne pas perdre les notifications.
+self.addEventListener("pushsubscriptionchange", (e) => {
+  e.waitUntil((async () => {
+    const old = e.oldSubscription;
+    let sub = e.newSubscription;
+    if (!sub && old?.options) sub = await self.registration.pushManager.subscribe(old.options).catch(() => null);
+    if (!sub) return;
+    await fetch(BASE + "api/push/resubscribe", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ oldEndpoint: old?.endpoint || null, subscription: sub.toJSON() }),
+    }).catch(() => {});
+  })());
 });

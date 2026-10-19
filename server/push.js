@@ -29,8 +29,8 @@ async function broadcast(store, pref, payload, { urgency = "normal", ttl = 3600 
     for (let j = 0; j < results.length; j++) {
       const r = results[j];
       if (r.status === "fulfilled") sent++;
-      else if ([404, 410].includes(r.reason?.statusCode)) { await store.removeSubscription(subs[i + j].endpoint); removed++; }
-      else console.warn("[push] Échec d'envoi :", r.reason?.statusCode || r.reason?.message);
+      else if ([404, 410].includes(r.reason?.statusCode)) { await store.removeSubscription(subs[i + j].endpoint); removed++; await global.__logPush?.("supprimé (expiré)", subs[i + j].endpoint, r.reason.statusCode); }
+      else { console.warn("[push] Échec d'envoi :", r.reason?.statusCode || r.reason?.message); await global.__logPush?.("échec d'envoi", subs[i + j].endpoint, r.reason?.statusCode || String(r.reason?.message || "").slice(0, 80)); }
     }
   }
   console.log(`[push] "${payload.title}" → ${sent}/${subs.length} envoyées${removed ? `, ${removed} abonnements expirés supprimés` : ""}`);
